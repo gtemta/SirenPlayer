@@ -71,3 +71,9 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# add
+/.idea/workspace.xml
+/.idea/libraries
+/captures
+.DS_Store
