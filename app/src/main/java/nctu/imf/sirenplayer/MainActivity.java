@@ -7,16 +7,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends Activity {
-    Intent intent;
+    Intent sIntent;
+    Intent aIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        intent=new Intent();
-        intent.setAction("nctu.imf.sirenplayer.MainService");
-        intent.setPackage(getPackageName());
-        startService(intent);
+        sIntent = new Intent();
+        sIntent.setAction("nctu.imf.sirenplayer.MainService");
+        sIntent.setPackage(getPackageName());
+        startService(sIntent);
+        aIntent=new Intent();
+        aIntent.setClass(MainActivity.this, PlayerActivity.class);
+        aIntent.setPackage(getPackageName());
+        startActivity(aIntent);
         MainActivity.this.finish();
     }
 
