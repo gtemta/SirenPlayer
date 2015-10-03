@@ -6,9 +6,24 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 public class MainActivity extends Activity {
     Intent sIntent;
     Intent aIntent;
+
+    //DE=============
+    // ListView使用的自定Adapter物件
+    private DBAdapter dbAdapter;
+    // 儲存所有記事本的List物件
+    private List<DBcontact> records;
+    // 選單項目物件
+    private MenuItem add_record,search_record,revert_record,delete_record;
+    // 已選擇項目數量
+    private int selectedCount = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +38,15 @@ public class MainActivity extends Activity {
         aIntent.setPackage(getPackageName());
         startActivity(aIntent);
         MainActivity.this.finish();
+        //// DB
+        // 加入範例資料
+        records = new ArrayList<DBcontact>();
+        records.add(new DBcontact(1, "Test for Db command 1", "True", new Date().getTime()));
+        records.add(new DBcontact(2, "Test for Db command 2", "False", new Date().getTime()));
+        records.add(new DBcontact(3, "Test for Db command 3", "True", new Date().getTime()));
+
+        // 建立自定Adapter物件
+        dbAdapter = new DBAdapter(this, R.layout.db_item, records);
     }
 
     @Override
