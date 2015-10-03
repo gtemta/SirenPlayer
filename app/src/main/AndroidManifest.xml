@@ -25,6 +25,7 @@
         </intent-filter></service>
         <activity android:name=".PlayerActivity"></activity>
         <activity android:name=".SearchActivity"></activity>
+        <activity android:name=".DBActivity"></activity>
     </application>
 
 </manifest>

@@ -13,8 +13,9 @@ import java.util.List;
 public class MainActivity extends Activity {
     Intent sIntent;
     Intent aIntent;
+    //DB
+    private DbDAO dbDAO;
 
-    //DE=============
     // ListView使用的自定Adapter物件
     private DBAdapter dbAdapter;
     // 儲存所有記事本的List物件
@@ -38,7 +39,7 @@ public class MainActivity extends Activity {
         aIntent.setPackage(getPackageName());
         startActivity(aIntent);
         MainActivity.this.finish();
-        //// DB
+        //// ListView
         // 加入範例資料
         records = new ArrayList<DBcontact>();
         records.add(new DBcontact(1, "Test for Db command 1", "True", new Date().getTime()));
@@ -47,6 +48,19 @@ public class MainActivity extends Activity {
 
         // 建立自定Adapter物件
         dbAdapter = new DBAdapter(this, R.layout.db_item, records);
+
+
+        //建立資料庫物件
+        dbDAO = new DbDAO(getApplicationContext());
+        // 如果資料庫是空的，就建立一些範例資料
+        // 這是為了方便測試用的，完成應用程式以後可以拿掉
+        if (dbDAO.getCount() == 0){
+            dbDAO.sample();
+        }
+
+        //取得所有記事資料
+        records = dbDAO.getAll();
+
     }
 
     @Override
@@ -75,5 +89,21 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK)       //條件待重設
+        {
+            DBcontact dBcontact = (DBcontact) data.getExtras().getSerializable(
+                    "net.macdidi.myandroidtutorial.Item");
+
+
+                // 新增記事資料到資料庫
+                dBcontact = DbDAO.insert(dBcontact);
+                records.add(dBcontact);
+
+
+        }
     }
 }
