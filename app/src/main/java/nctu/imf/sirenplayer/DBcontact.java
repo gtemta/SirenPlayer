@@ -45,14 +45,14 @@ public class DBcontact {
     public String getLocaleDatetime(){
         return String.format(Locale.getDefault(),"%tF  %<tR", new Date(_Time));
     }
-    public void set_Time(long time){
+    public void Set_Time(long time){
         this._Time =time;
     }
 
     public String get_Confirm(){
         return _Confirm;
     }
-    public void set_Confirm(String confirm){
+    public void Set_Confirm(String confirm){
         this._Confirm=confirm;
     }
 

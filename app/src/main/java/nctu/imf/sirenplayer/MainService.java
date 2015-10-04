@@ -244,7 +244,10 @@ public class MainService extends Service{
             @Override
             public boolean onLongClick(View v) {
                 if (!isMoving) {
-                    MainService.this.onDestroy();
+                        // 暫時切換至記錄
+                    Intent i = new Intent(getApplicationContext(),DBActivity.class);
+                    startActivity(i);
+                   // MainService.this.onDestroy();
                 }
                 return true;
             }
@@ -305,10 +308,17 @@ public class MainService extends Service{
 
         @Override
         public void onResults(Bundle results) {
-            Log.i(TAG,"onResults");
+            Log.i(TAG, "onResults");
             ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String str=(String)data.get(0);
             Toast.makeText(MainService.this,str,Toast.LENGTH_SHORT).show();
+            Intent DBintent =new Intent();
+            DBintent.setClass(MainService.this, DBActivity.class);
+            Bundle bundle =new Bundle();
+            bundle.putString("Command",str);
+            //bundle.putString("Confirm",confirm);
+
+
             Log.i(TAG, str);
             needRestart=true;
             isSpeaking=false;

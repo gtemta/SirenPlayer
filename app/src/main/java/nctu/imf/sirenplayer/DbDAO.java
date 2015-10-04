@@ -143,10 +143,15 @@ public class DbDAO {
 
     //建立範例資料
     public void sample(){
-        DBcontact RS1= new DBcontact(0,"SampleTest1","True",new Date().getTime());
-        DBcontact RS2= new DBcontact(0,"SampleTest2","False",new Date().getTime());
+        DBcontact RS1= new DBcontact(0,"SampleTest1forDB","True",new Date().getTime());
+        DBcontact RS2= new DBcontact(0,"SampleTest2forDB","False",new Date().getTime());
+        DBcontact RS3= new DBcontact(0,"SampleTest3forDB","False",new Date().getTime());
+        DBcontact RS4= new DBcontact(0,"SampleTest4forDB","False",new Date().getTime());
+
         insert(RS1);
         insert(RS2);
+        insert(RS3);
+        insert(RS4);
     }
 
 

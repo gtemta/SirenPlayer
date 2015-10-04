@@ -3,6 +3,7 @@ package nctu.imf.sirenplayer;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -13,6 +14,7 @@ import java.util.List;
 public class MainActivity extends Activity {
     Intent sIntent;
     Intent aIntent;
+    private static final String TAG="MainActivity";
     //DB
     private DbDAO dbDAO;
 
@@ -52,6 +54,7 @@ public class MainActivity extends Activity {
 
         //建立資料庫物件
         dbDAO = new DbDAO(getApplicationContext());
+        Log.i(TAG, "DB setup ");
         // 如果資料庫是空的，就建立一些範例資料
         // 這是為了方便測試用的，完成應用程式以後可以拿掉
         if (dbDAO.getCount() == 0){
@@ -93,17 +96,14 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_OK)       //條件待重設
-        {
+
             DBcontact dBcontact = (DBcontact) data.getExtras().getSerializable(
                     "net.macdidi.myandroidtutorial.Item");
-
-
                 // 新增記事資料到資料庫
-                dBcontact = DbDAO.insert(dBcontact);
+                dBcontact = dbDAO.insert(dBcontact);
                 records.add(dBcontact);
 
 
-        }
+
     }
 }

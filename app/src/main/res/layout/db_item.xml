@@ -37,7 +37,8 @@
         android:layout_below="@+id/record_command"
         android:layout_toRightOf="@+id/record_time"
         android:layout_marginLeft="100sp"
-        android:textSize="15sp" />
+        android:textSize="15sp"
+        android:textColor="#1B813E" />
 
 
 </RelativeLayout>
