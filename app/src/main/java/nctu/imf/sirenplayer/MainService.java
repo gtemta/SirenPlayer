@@ -11,6 +11,7 @@ import android.os.Message;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -308,8 +309,8 @@ public class MainService extends Service{
             Log.i(TAG,"onResults");
             ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String str=(String)data.get(0);
-            Toast.makeText(MainService.this,str,Toast.LENGTH_SHORT).show();
-            Log.i(TAG, str);
+            sendResult(str);
+            Log.d(TAG, str);
             needRestart=true;
             isSpeaking=false;
         }
@@ -323,5 +324,12 @@ public class MainService extends Service{
         public void onEvent(int eventType, Bundle params) {
             Log.i(TAG,"onEvent");
         }
+    }
+
+    private void sendResult(String str) {
+        Intent intent = new Intent("my-event");
+        // add data
+        intent.putExtra("result", str);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }
