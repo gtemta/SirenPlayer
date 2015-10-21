@@ -55,11 +55,13 @@ public class MainService extends Service{
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
 
 //        createBTN();
+
         timer = new Timer();
         speechRecognizer=SpeechRecognizer.createSpeechRecognizer(MainService.this);
         speechRecognizer.setRecognitionListener(new listener());
         speechRecognizer.startListening(intent);
-        timer.schedule(timerTask, 1000, 1000);
+        timer.schedule(timerTask, 5000, 2000);
+
 //        timeThread=new TimeThread();
 //        timeThread.start();
     }
@@ -182,6 +184,8 @@ public class MainService extends Service{
 
     @Override
     public void onDestroy() {
+        Log.d(TAG,"onDestroy");
+        timer.cancel();
 //        if (timeThread!=null) {
 //            timeThread.interrupt();
 //            timeThread=null;
@@ -192,7 +196,6 @@ public class MainService extends Service{
         intent.setPackage(getPackageName());
         stopService(intent);
         speechRecognizer.destroy();
-        timer.cancel();
 //        windowManager.removeView(imgBtn);
         super.onDestroy();
     }
@@ -262,6 +265,8 @@ public class MainService extends Service{
         speechRecognizer.stopListening();
         speechRecognizer.cancel();
         speechRecognizer.destroy();
+        speechRecognizer=null;
+        speechRecognizer=SpeechRecognizer.createSpeechRecognizer(MainService.this);
         speechRecognizer.setRecognitionListener(new listener());
         speechRecognizer.startListening(intent);
         needRestart=false;
@@ -309,6 +314,9 @@ public class MainService extends Service{
             Log.i(TAG,"onResults");
             ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String str=(String)data.get(0);
+//            if(str=="關閉語音"){
+//                MainService.this.onDestroy();
+//            }
             sendResult(str);
             Log.d(TAG, str);
             needRestart=true;
@@ -322,7 +330,7 @@ public class MainService extends Service{
 
         @Override
         public void onEvent(int eventType, Bundle params) {
-            Log.i(TAG,"onEvent");
+            Log.i(TAG, "onEvent");
         }
     }
 

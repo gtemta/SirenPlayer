@@ -26,15 +26,17 @@ public class PlayerActivity extends YouTubeBaseActivity
     public YouTubePlayer player;
     private static final int RECOVERY_DIALOG_REQUEST = 1;
     private AudioManager audioManager;
-
+    private String TAG="PlayerActivity";
 
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        audioManager.getMode();
 
         setContentView(R.layout.activity_player);
 
+        playerView= new YouTubePlayerView(PlayerActivity.this);
         playerView = (YouTubePlayerView)findViewById(R.id.youtube_view);
         playerView.initialize(DeveloperKey.DEVELOPER_KEY, PlayerActivity.this);
     }
@@ -62,18 +64,24 @@ public class PlayerActivity extends YouTubeBaseActivity
                 case "暫停":
                     player.pause();
                     break;
-                case "聲音變大":
-                    audioManager.getMode();
-                    audioManager.adjustVolume(AudioManager.ADJUST_RAISE, 0);
+                case "全螢幕":
+                    player.setFullscreen(true);
                     break;
-                case "聲音變小":
+                case "大聲":
                     audioManager.getMode();
-                    audioManager.adjustVolume(AudioManager.ADJUST_LOWER, 0);
+                    audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+                    audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
                     break;
-                case "震動":
+                case "小聲":
                     audioManager.getMode();
-                    audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+                    audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+                    audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
                     break;
+                case "靜音":
+                    audioManager.getMode();
+                    audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                    break;
+                case "閉嘴":
                 case "關閉":
                     Intent pIntent=new Intent();
                     pIntent.setAction("nctu.imf.sirenplayer.MainService");
@@ -100,7 +108,11 @@ public class PlayerActivity extends YouTubeBaseActivity
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youtubeplayer,
                                         boolean restored) {
+        Log.d(TAG,"onInitializationSuccess");
         player=youtubeplayer;
+        player.setPlayerStyle(YouTubePlayer.PlayerStyle.MINIMAL);
+        player.setPlayerStateChangeListener(playerStateChangeListener);
+        player.setPlaybackEventListener(playbackEventListener);
         if(!restored){
             player.loadVideo("QDg4a2azcAg");
         }
@@ -109,7 +121,7 @@ public class PlayerActivity extends YouTubeBaseActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
+        Log.d(TAG, "onActivityResult");
     }
 
     @Override
@@ -121,5 +133,80 @@ public class PlayerActivity extends YouTubeBaseActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        Intent pIntent=new Intent();
+        pIntent.setAction("nctu.imf.sirenplayer.MainService");
+        pIntent.setPackage(getPackageName());
+        stopService(pIntent);
+        PlayerActivity.this.finish();
     }
+
+    private YouTubePlayer.PlaybackEventListener playbackEventListener = new YouTubePlayer.PlaybackEventListener() {
+
+        @Override
+        public void onBuffering(boolean arg0) {
+            Log.d(TAG,"onBuffering");
+        }
+
+        @Override
+        public void onPaused() {
+            Log.d(TAG,"onPaused");
+        }
+
+        @Override
+        public void onPlaying() {
+            Log.d(TAG,"onPlaying");
+        }
+
+        @Override
+        public void onSeekTo(int arg0) {
+            Log.d(TAG,"onSeekTo");
+        }
+
+        @Override
+        public void onStopped() {
+            Log.d(TAG,"onStopped");
+        }
+
+    };
+
+    private YouTubePlayer.OnFullscreenListener FullscreenListener = new YouTubePlayer.OnFullscreenListener() {
+        @Override
+        public void onFullscreen(boolean var1) {
+            Log.d(TAG,"onFullscreen");
+        }
+    };
+
+    private YouTubePlayer.PlayerStateChangeListener playerStateChangeListener = new YouTubePlayer.PlayerStateChangeListener() {
+
+        @Override
+        public void onAdStarted() {
+            Log.d(TAG,"onAdStarted");
+        }
+
+        @Override
+        public void onError(YouTubePlayer.ErrorReason arg0) {
+            Log.d(TAG,"onError");
+        }
+
+        @Override
+        public void onLoaded(String arg0) {
+            Log.d(TAG,"onLoaded");
+        }
+
+        @Override
+        public void onLoading() {
+            Log.d(TAG,"onLoading");
+        }
+
+        @Override
+        public void onVideoEnded() {
+            Log.d(TAG,"onVideoEnded");
+        }
+
+        @Override
+        public void onVideoStarted() {
+            Log.d(TAG,"onVideoStarted");
+        }
+    };
 }
