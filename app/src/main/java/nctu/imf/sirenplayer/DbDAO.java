@@ -12,21 +12,21 @@ import java.util.List;
 /**
  * Created by IMF-H-A on 2015/10/3.
  */
-// ¸ê®Æ¥\¯àÃþ§O
+// ï¿½ï¿½Æ¥\ï¿½ï¿½ï¿½ï¿½ï¿½O
 public class DbDAO {
-    // ªí®æ¦WºÙ
+    // ï¿½ï¿½ï¿½Wï¿½ï¿½
     public static final String TABLE_NAME = "Record";
 
-    // ½s¸¹ªí®æÄæ¦ì¦WºÙ¡A©T©w¤£ÅÜ
+    // ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Wï¿½Ù¡Aï¿½Tï¿½wï¿½ï¿½ï¿½ï¿½
     public static final String KEY_ID = "_id";
 
-    // ¨ä¥¦ªí®æÄæ¦ì¦WºÙ
+    // ï¿½ä¥¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Wï¿½ï¿½
     public static final String COMMAND = "command";
     public static final String CONFIRM = "confirm";
     public static final String TIME = "time";
 
 
-    //«Ø¥ßªí®æªºSQL«ü¥O
+    //ï¿½Ø¥ßªï¿½æªºSQLï¿½ï¿½ï¿½O
     public static  final String CREATE_TABLE =
             "CREATE TABLE" + TABLE_NAME + " (" +
                     KEY_ID + "INTEGER PRIMARY KEY AUTOINCREMENT, "+
@@ -34,74 +34,74 @@ public class DbDAO {
                     CONFIRM + "TEXT ,"  +
                     TIME + "INTEGER NOT NULL  )";
 
-    //¸ê®Æ®wª«¥ó
+    //ï¿½ï¿½Æ®wï¿½ï¿½ï¿½ï¿½
     private SQLiteDatabase db;
 
-    //«Øºc¤l
+    //ï¿½Øºcï¿½l
     public DbDAO(Context context)
     {
         db = MyDBHelper.getDatabase(context);
     }
 
-    //Ãö³¬¸ê®Æ®w
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®w
     public  void close(){
         db.close();
     }
 
 
-    //·s¼W°Ñ¼Æ«ü©wªºª«¥ó
+    //ï¿½sï¿½Wï¿½Ñ¼Æ«ï¿½ï¿½wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public  DBcontact insert(DBcontact dBcontact){
-        // «Ø¥ß·Ç³Æ·s¼W¸ê®ÆªºContentValuesª«¥ó
+        // ï¿½Ø¥ß·Ç³Æ·sï¿½Wï¿½ï¿½Æªï¿½ContentValuesï¿½ï¿½ï¿½ï¿½
         ContentValues cv = new ContentValues();
 
-        // ¥[¤JContentValuesª«¥ó¥]¸Ëªº·s¼W¸ê®Æ
-        // ²Ä¤@­Ó°Ñ¼Æ¬OÄæ¦ì¦WºÙ¡A ²Ä¤G­Ó°Ñ¼Æ¬OÄæ¦ìªº¸ê®Æ
+        // ï¿½[ï¿½JContentValuesï¿½ï¿½ï¿½ï¿½]ï¿½Ëªï¿½ï¿½sï¿½Wï¿½ï¿½ï¿½
+        // ï¿½Ä¤@ï¿½Ó°Ñ¼Æ¬Oï¿½ï¿½ï¿½Wï¿½Ù¡A ï¿½Ä¤Gï¿½Ó°Ñ¼Æ¬Oï¿½ï¿½ìªºï¿½ï¿½ï¿½
         cv.put(COMMAND,dBcontact.get_Command());
         cv.put(TIME,dBcontact.getLocaleDatetime());
         cv.put(CONFIRM,dBcontact.get_Confirm());
 
-        // ·s¼W¤@µ§¸ê®Æ¨Ã¨ú±o½s¸¹
-        // ²Ä¤@­Ó°Ñ¼Æ¬Oªí®æ¦WºÙ
-        // ²Ä¤G­Ó°Ñ¼Æ¬O¨S¦³«ü©wÄæ¦ì­Èªº¹w³]­È
-        // ²Ä¤T­Ó°Ñ¼Æ¬O¥]¸Ë·s¼W¸ê®ÆªºContentValuesª«¥ó
+        // ï¿½sï¿½Wï¿½@ï¿½ï¿½ï¿½ï¿½Æ¨Ã¨ï¿½ï¿½oï¿½sï¿½ï¿½
+        // ï¿½Ä¤@ï¿½Ó°Ñ¼Æ¬Oï¿½ï¿½ï¿½Wï¿½ï¿½
+        // ï¿½Ä¤Gï¿½Ó°Ñ¼Æ¬Oï¿½Sï¿½ï¿½ï¿½ï¿½ï¿½wï¿½ï¿½ï¿½Èªï¿½ï¿½wï¿½]ï¿½ï¿½
+        // ï¿½Ä¤Tï¿½Ó°Ñ¼Æ¬Oï¿½]ï¿½Ë·sï¿½Wï¿½ï¿½Æªï¿½ContentValuesï¿½ï¿½ï¿½ï¿½
         long id = db.insert(TABLE_NAME, null, cv);
 
-        // ³]©w½s¸¹
+        // ï¿½]ï¿½wï¿½sï¿½ï¿½
         dBcontact.Setid(id);
-        // ¦^¶Çµ²ªG
+        // ï¿½^ï¿½Çµï¿½ï¿½G
         return dBcontact;
 
     }
 
-    // ­×§ï°Ñ¼Æ«ü©wªºª«¥ó
+    // ï¿½×§ï¿½Ñ¼Æ«ï¿½ï¿½wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public boolean update(DBcontact item) {
-        // «Ø¥ß·Ç³Æ­×§ï¸ê®ÆªºContentValuesª«¥ó
+        // ï¿½Ø¥ß·Ç³Æ­×§ï¿½ï¿½Æªï¿½ContentValuesï¿½ï¿½ï¿½ï¿½
         ContentValues cv = new ContentValues();
 
-        // ¥[¤JContentValuesª«¥ó¥]¸Ëªº­×§ï¸ê®Æ
-        // ²Ä¤@­Ó°Ñ¼Æ¬OÄæ¦ì¦WºÙ¡A ²Ä¤G­Ó°Ñ¼Æ¬OÄæ¦ìªº¸ê®Æ
+        // ï¿½[ï¿½JContentValuesï¿½ï¿½ï¿½ï¿½]ï¿½Ëªï¿½ï¿½×§ï¿½ï¿½ï¿½
+        // ï¿½Ä¤@ï¿½Ó°Ñ¼Æ¬Oï¿½ï¿½ï¿½Wï¿½Ù¡A ï¿½Ä¤Gï¿½Ó°Ñ¼Æ¬Oï¿½ï¿½ìªºï¿½ï¿½ï¿½
         cv.put(COMMAND,item.get_Command());
         cv.put(TIME,item.getLocaleDatetime());
         cv.put(CONFIRM,item.get_Confirm());
 
-        // ³]©w­×§ï¸ê®Æªº±ø¥ó¬°½s¸¹
-        // ®æ¦¡¬°¡uÄæ¦ì¦WºÙ¡×¸ê®Æ¡v
+        // ï¿½]ï¿½wï¿½×§ï¿½ï¿½Æªï¿½ï¿½ï¿½ï¿½ó¬°½sï¿½ï¿½
+        // ï¿½æ¦¡ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½Wï¿½Ù¡×¸ï¿½Æ¡v
         String where = KEY_ID + "=" + item.getId();
 
-        // °õ¦æ­×§ï¸ê®Æ¨Ã¦^¶Ç­×§ïªº¸ê®Æ¼Æ¶q¬O§_¦¨¥\
+        // ï¿½ï¿½ï¿½ï¿½×§ï¿½ï¿½Æ¨Ã¦^ï¿½Ç­×§ïªºï¿½ï¿½Æ¼Æ¶qï¿½Oï¿½_ï¿½ï¿½ï¿½\
         return db.update(TABLE_NAME, cv, where, null) > 0;
 
     }
 
-    // §R°£°Ñ¼Æ«ü©w½s¸¹ªº¸ê®Æ
+    // ï¿½Rï¿½ï¿½ï¿½Ñ¼Æ«ï¿½ï¿½wï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public boolean delete(long id){
-        // ³]©w±ø¥ó¬°½s¸¹¡A®æ¦¡¬°¡uÄæ¦ì¦WºÙ=¸ê®Æ¡v
+        // ï¿½]ï¿½wï¿½ï¿½ï¿½ó¬°½sï¿½ï¿½ï¿½Aï¿½æ¦¡ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½Wï¿½ï¿½=ï¿½ï¿½Æ¡v
         String where = KEY_ID + "=" + id;
-        // §R°£«ü©w½s¸¹¸ê®Æ¨Ã¦^¶Ç§R°£¬O§_¦¨¥\
+        // ï¿½Rï¿½ï¿½ï¿½ï¿½ï¿½wï¿½sï¿½ï¿½ï¿½ï¿½Æ¨Ã¦^ï¿½Ç§Rï¿½ï¿½ï¿½Oï¿½_ï¿½ï¿½ï¿½\
         return db.delete(TABLE_NAME, where, null) > 0;
     }
 
-    // Åª¨ú©Ò¦³°O¨Æ¸ê®Æ
+    // Åªï¿½ï¿½ï¿½Ò¦ï¿½ï¿½Oï¿½Æ¸ï¿½ï¿½
     public List<DBcontact> getAll() {
         List<DBcontact> result = new ArrayList<>();
         Cursor cursor = db.query(
@@ -115,20 +115,20 @@ public class DbDAO {
         return result;
     }
 
-    // §âCursor¥Ø«eªº¸ê®Æ¥]¸Ë¬°ª«¥ó
+    // ï¿½ï¿½Cursorï¿½Ø«eï¿½ï¿½ï¿½ï¿½Æ¥]ï¿½Ë¬ï¿½ï¿½ï¿½ï¿½ï¿½
     public DBcontact getRecord(Cursor cursor) {
-        // ·Ç³Æ¦^¶Çµ²ªG¥Îªºª«¥ó
+        // ï¿½Ç³Æ¦^ï¿½Çµï¿½ï¿½Gï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½
         DBcontact result = new DBcontact();
 
         result.Setid(cursor.getLong(0));
         result.Set_Command(cursor.getString(1));
-        result.set_Time(cursor.getLong(2));
-        result.set_Confirm(cursor.getString(3));
+        result.Set_Time(cursor.getLong(2));
+        result.Set_Confirm(cursor.getString(3));
 
-        // ¦^¶Çµ²ªG
+        // ï¿½^ï¿½Çµï¿½ï¿½G
         return result;
     }
-    // ¨ú±o¸ê®Æ¼Æ¶q
+    // ï¿½ï¿½ï¿½oï¿½ï¿½Æ¼Æ¶q
     public int getCount() {
         int result = 0;
         Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_NAME, null);
@@ -141,9 +141,9 @@ public class DbDAO {
     }
 
 
-    //«Ø¥ß½d¨Ò¸ê®Æ
+    //ï¿½Ø¥ß½dï¿½Ò¸ï¿½ï¿½
     public void sample(){
-        DBcontact RS1= new DBcontact(0,"SampleTest1forDB","True",new Date().getTime());
+        DBcontact RS1= new DBcontact(0,"SampleTest1forDB","True" ,new Date().getTime());
         DBcontact RS2= new DBcontact(0,"SampleTest2forDB","False",new Date().getTime());
         DBcontact RS3= new DBcontact(0,"SampleTest3forDB","False",new Date().getTime());
         DBcontact RS4= new DBcontact(0,"SampleTest4forDB","False",new Date().getTime());

@@ -3,18 +3,31 @@ package nctu.imf.sirenplayer;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.format.Time;
-import android.view.View;
+import android.util.Log;
+import android.view.MenuItem;
+import android.widget.ListView;
 
-import java.util.Timer;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 
 /**
  * Created by IMF-H-A on 2015/10/3.
  */
 public class DBActivity extends Activity{
-    //°O¿ıª«¥ó
+    //ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private DBcontact dbcontact;
+    //DB
+    private DbDAO dbDAO;
+    private static final String TAG="DBActivity";
+    // ListViewä½¿ç”¨çš„è‡ªå®šAdapterç‰©ä»¶
+    private DBAdapter dbAdapter;
+    // å„²å­˜æ‰€æœ‰è¨˜äº‹æœ¬çš„Listç‰©ä»¶
+    private List<DBcontact> records;
+    // é¸å–®é …ç›®ç‰©ä»¶
+    private MenuItem add_record,search_record,revert_record,delete_record;
+    private ListView record_list ;
 
     @Override
     protected void  onCreate(Bundle savedInstanceState) {
@@ -22,43 +35,75 @@ public class DBActivity extends Activity{
         setContentView(R.layout.activity_db);
 
         processViews();
-        // ¨ú±oIntentª«¥ó
+        // ï¿½ï¿½ï¿½oIntentï¿½ï¿½ï¿½ï¿½
         Intent intent = getIntent();
-        //·s¼W
+        //ï¿½sï¿½W
         dbcontact= new DBcontact();
+        //// ListView
+        // åŠ å…¥ç¯„ä¾‹è³‡æ–™
+        records = new ArrayList<DBcontact>();
+        records.add(new DBcontact(1, "Test for ListView command 1", "True", new Date().getTime()));
+        records.add(new DBcontact(2, "Test for ListView command 2", "False", new Date().getTime()));
+        records.add(new DBcontact(3, "Test for ListView command 3", "True", new Date().getTime()));
+
+        // å»ºç«‹è‡ªå®šAdapterç‰©ä»¶
+        dbAdapter = new DBAdapter(this, R.layout.db_item, records);
+
+
+        //å»ºç«‹è³‡æ–™åº«ç‰©ä»¶
+        dbDAO = new DbDAO(getApplicationContext());
+        Log.i(TAG, "DB setup ");
+        // å¦‚æœè³‡æ–™åº«æ˜¯ç©ºçš„ï¼Œå°±å»ºç«‹ä¸€äº›ç¯„ä¾‹è³‡æ–™
+        // é€™æ˜¯ç‚ºäº†æ–¹ä¾¿æ¸¬è©¦ç”¨çš„ï¼Œå®Œæˆæ‡‰ç”¨ç¨‹å¼ä»¥å¾Œå¯ä»¥æ‹¿æ‰
+        if (dbDAO.getCount() == 0){
+            dbDAO.sample();
+        }
+
+        //å–å¾—æ‰€æœ‰è¨˜äº‹è³‡æ–™
+        records = dbDAO.getAll();
+        dbAdapter =new DBAdapter(this,R.layout.db_item,records);
+        record_list.setAdapter(dbAdapter);
 
     }
 
 
     private void processViews(){
-    //onSubmit();
+        //onSubmit();
 
     }
 
 
-    public void onSubmit(View view){
+    public void onSubmit(){
 
-            // Åª¨ú¨Ï¥ÎªÌ¿é¤Jªº¼ĞÃD»P¤º®e
+            // è®€å–ä½¿ç”¨è€…è¼¸å…¥çš„æ¨™é¡Œèˆ‡å…§å®¹
             String Command =dbcontact.get_Command();
             String ConfirmCode = dbcontact.get_Confirm();
             long Time =dbcontact.get_Time();
 
 
 
-            // ¨ú±o¦^¶Ç¸ê®Æ¥ÎªºIntentª«¥ó
+            // ï¿½ï¿½ï¿½oï¿½^ï¿½Ç¸ï¿½Æ¥Îªï¿½Intentï¿½ï¿½ï¿½ï¿½
             Intent result = getIntent();
 
-            //³]©w¦^¶Çªº°O¨Æª«¥ó
+            //ï¿½]ï¿½wï¿½^ï¿½Çªï¿½ï¿½Oï¿½Æªï¿½ï¿½ï¿½
             result.putExtra("Command",Command );
             result.putExtra("confirmcode", ConfirmCode);
             result.putExtra("Time",Time);
 
-            // ³]©w¦^À³µ²ªG¬°½T©w
+            // ï¿½]ï¿½wï¿½^ï¿½ï¿½ï¿½ï¿½ï¿½Gï¿½ï¿½ï¿½Tï¿½w
             setResult(Activity.RESULT_OK, result);
-        // µ²§ô
+        // ï¿½ï¿½ï¿½ï¿½
         finish();
     }
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        DBcontact dBcontact = (DBcontact) data.getExtras().getSerializable(
+                "SirenPlayer.DBcontact");
+        // æ–°å¢è¨˜äº‹è³‡æ–™åˆ°è³‡æ–™åº«
+        dBcontact = dbDAO.insert(dBcontact);
+        records.add(dBcontact);
+    }
 
 
 

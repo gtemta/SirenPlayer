@@ -1,6 +1,5 @@
 package nctu.imf.sirenplayer;
 
-import android.app.ActionBar;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -225,9 +224,9 @@ public class MainService extends Service{
                     yLast = (int) event.getRawY();
                     isFirst=false;
                 }
-                if(event.getAction()==MotionEvent.ACTION_UP){
-                    isMoving=false;
-                    isFirst =true;
+                if(event.getAction()==MotionEvent.ACTION_UP) {
+                    isMoving = false;
+                    isFirst = true;
                 }
                 return false;
             }
@@ -315,7 +314,7 @@ public class MainService extends Service{
             Intent DBintent =new Intent();
             DBintent.setClass(MainService.this, DBActivity.class);
             Bundle bundle =new Bundle();
-            bundle.putString("Command",str);
+            bundle.putString("Command", str);
             //bundle.putString("Confirm",confirm);
 
 
