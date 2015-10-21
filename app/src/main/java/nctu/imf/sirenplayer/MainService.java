@@ -30,9 +30,9 @@ import java.util.TimerTask;
 public class MainService extends Service{
     private static final String TAG="MainService";
     SpeechRecognizer speechRecognizer;
-    ImageButton imgBtn=null;
-    WindowManager windowManager=null;
-    WindowManager.LayoutParams wmLayoutParams;
+//    ImageButton imgBtn=null;
+//    WindowManager windowManager=null;
+//    WindowManager.LayoutParams wmLayoutParams;
     private int xLast=0;
     private int yLast=0;
     private int xC=100;
@@ -54,7 +54,7 @@ public class MainService extends Service{
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
 
-        createBTN();
+//        createBTN();
         timer = new Timer();
         speechRecognizer=SpeechRecognizer.createSpeechRecognizer(MainService.this);
         speechRecognizer.setRecognitionListener(new listener());
@@ -114,23 +114,23 @@ public class MainService extends Service{
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
-                case 0:
-                    break;
-                case 1:
-                    imgBtn.setImageResource(R.drawable.number1);
-                    break;
-                case 2:
-                    imgBtn.setImageResource(R.drawable.number2);
-                    break;
-                case 3:
-                    imgBtn.setImageResource(R.drawable.number3);
-                    break;
-                case 4:
-                    imgBtn.setImageResource(R.drawable.number4);
-                    break;
-                case 5:
-                    imgBtn.setImageResource(R.drawable.number5);
-                    break;
+//                case 0:
+//                    break;
+//                case 1:
+//                    imgBtn.setImageResource(R.drawable.number1);
+//                    break;
+//                case 2:
+//                    imgBtn.setImageResource(R.drawable.number2);
+//                    break;
+//                case 3:
+//                    imgBtn.setImageResource(R.drawable.number3);
+//                    break;
+//                case 4:
+//                    imgBtn.setImageResource(R.drawable.number4);
+//                    break;
+//                case 5:
+//                    imgBtn.setImageResource(R.drawable.number5);
+//                    break;
             }
             super.handleMessage(msg);
         }
@@ -193,70 +193,70 @@ public class MainService extends Service{
         stopService(intent);
         speechRecognizer.destroy();
         timer.cancel();
-        windowManager.removeView(imgBtn);
+//        windowManager.removeView(imgBtn);
         super.onDestroy();
     }
 
-    private void createBTN() {
-        imgBtn = new ImageButton(getApplicationContext());
-        imgBtn.setImageResource(R.drawable.number0);
-        windowManager = (WindowManager)getApplicationContext().getSystemService(WINDOW_SERVICE);
-        wmLayoutParams = new WindowManager.LayoutParams();
-        wmLayoutParams.type=WindowManager.LayoutParams.TYPE_PHONE;
-        wmLayoutParams.format= PixelFormat.RGBA_8888;
-        wmLayoutParams.flags=WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        wmLayoutParams.gravity= Gravity.LEFT| Gravity.TOP;
-        wmLayoutParams.width=WindowManager.LayoutParams.WRAP_CONTENT;
-        wmLayoutParams.height=WindowManager.LayoutParams.WRAP_CONTENT;
-        wmLayoutParams.x=xC;
-        wmLayoutParams.y=yC;
-        windowManager.addView(imgBtn, wmLayoutParams);
+//    private void createBTN() {
+//        imgBtn = new ImageButton(getApplicationContext());
+//        imgBtn.setImageResource(R.drawable.number0);
+//        windowManager = (WindowManager)getApplicationContext().getSystemService(WINDOW_SERVICE);
+//        wmLayoutParams = new WindowManager.LayoutParams();
+//        wmLayoutParams.type=WindowManager.LayoutParams.TYPE_PHONE;
+//        wmLayoutParams.format= PixelFormat.RGBA_8888;
+//        wmLayoutParams.flags=WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+//        wmLayoutParams.gravity= Gravity.LEFT| Gravity.TOP;
+//        wmLayoutParams.width=WindowManager.LayoutParams.WRAP_CONTENT;
+//        wmLayoutParams.height=WindowManager.LayoutParams.WRAP_CONTENT;
+//        wmLayoutParams.x=xC;
+//        wmLayoutParams.y=yC;
+//        windowManager.addView(imgBtn, wmLayoutParams);
+//
+//        imgBtn.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if (event.getAction() == MotionEvent.ACTION_MOVE) {
+//                    isMoving = true;
+//                    if(!isFirst){
+//                        xC = xC + (int) event.getRawX() - xLast;
+//                        yC = yC + (int) event.getRawY() - yLast;
+//                        updateView(xC, yC);
+//                    }
+//                    xLast = (int) event.getRawX();
+//                    yLast = (int) event.getRawY();
+//                    isFirst=false;
+//                }
+//                if(event.getAction()==MotionEvent.ACTION_UP){
+//                    isMoving=false;
+//                    isFirst =true;
+//                }
+//                return false;
+//            }
+//        });
+//        imgBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if(!isMoving){
+//                    //do something here
+//                }
+//            }
+//        });
+//        imgBtn.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                if (!isMoving) {
+//                    MainService.this.onDestroy();
+//                }
+//                return true;
+//            }
+//        });
+//    }
 
-        imgBtn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                    isMoving = true;
-                    if(!isFirst){
-                        xC = xC + (int) event.getRawX() - xLast;
-                        yC = yC + (int) event.getRawY() - yLast;
-                        updateView(xC, yC);
-                    }
-                    xLast = (int) event.getRawX();
-                    yLast = (int) event.getRawY();
-                    isFirst=false;
-                }
-                if(event.getAction()==MotionEvent.ACTION_UP){
-                    isMoving=false;
-                    isFirst =true;
-                }
-                return false;
-            }
-        });
-        imgBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!isMoving){
-                    //do something here
-                }
-            }
-        });
-        imgBtn.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (!isMoving) {
-                    MainService.this.onDestroy();
-                }
-                return true;
-            }
-        });
-    }
-
-    private void updateView(int x,int y) {
-        wmLayoutParams.x=x;
-        wmLayoutParams.y=y;
-        windowManager.updateViewLayout(imgBtn, wmLayoutParams);
-    }
+//    private void updateView(int x,int y) {
+//        wmLayoutParams.x=x;
+//        wmLayoutParams.y=y;
+//        windowManager.updateViewLayout(imgBtn, wmLayoutParams);
+//    }
 
     private void restartSpeechRecognizer(){
         speechRecognizer.stopListening();

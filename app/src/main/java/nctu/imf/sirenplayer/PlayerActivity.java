@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -24,10 +25,13 @@ public class PlayerActivity extends YouTubeBaseActivity
     public YouTubePlayerView playerView;
     public YouTubePlayer player;
     private static final int RECOVERY_DIALOG_REQUEST = 1;
+    private AudioManager audioManager;
+
 
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+        audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 
         setContentView(R.layout.activity_player);
 
@@ -50,9 +54,33 @@ public class PlayerActivity extends YouTubeBaseActivity
             // Extract data included in the Intent
             String result = intent.getStringExtra("result");
             Log.d("receiver", "Got message: " + result);
-            Toast.makeText(PlayerActivity.this,result,Toast.LENGTH_SHORT).show();
-            if(result=="Play"){
-                player.play();
+            Toast.makeText(PlayerActivity.this,result.toUpperCase(),Toast.LENGTH_SHORT).show();
+            switch (result.toUpperCase()){
+                case "播放":
+                    player.play();
+                    break;
+                case "暫停":
+                    player.pause();
+                    break;
+                case "聲音變大":
+                    audioManager.getMode();
+                    audioManager.adjustVolume(AudioManager.ADJUST_RAISE, 0);
+                    break;
+                case "聲音變小":
+                    audioManager.getMode();
+                    audioManager.adjustVolume(AudioManager.ADJUST_LOWER, 0);
+                    break;
+                case "震動":
+                    audioManager.getMode();
+                    audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+                    break;
+                case "關閉":
+                    Intent pIntent=new Intent();
+                    pIntent.setAction("nctu.imf.sirenplayer.MainService");
+                    pIntent.setPackage(getPackageName());
+                    stopService(pIntent);
+                    PlayerActivity.this.finish();
+                    break;
             }
         }
     };
@@ -72,7 +100,7 @@ public class PlayerActivity extends YouTubeBaseActivity
     @Override
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youtubeplayer,
                                         boolean restored) {
-        this.player=youtubeplayer;
+        player=youtubeplayer;
         if(!restored){
             player.loadVideo("QDg4a2azcAg");
         }
