@@ -1,6 +1,8 @@
 package nctu.imf.sirenplayer;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -9,6 +11,7 @@ import android.view.MenuItem;
 public class MainActivity extends Activity {
     Intent sIntent;
     Intent aIntent;
+    private static final int NOTI_ID =100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,7 +22,7 @@ public class MainActivity extends Activity {
         sIntent.setPackage(getPackageName());
         startService(sIntent);
         aIntent=new Intent();
-        aIntent.setClass(MainActivity.this, PlayerActivity.class);
+        aIntent.setClass(MainActivity.this, MapsActivity.class);
         aIntent.setPackage(getPackageName());
         startActivity(aIntent);
         MainActivity.this.finish();
@@ -51,5 +54,15 @@ public class MainActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    private void showNotification(String sMsg){
+        Notification noti = new Notification.Builder(this)
+                .setSmallIcon(R.drawable.man)
+                .setTicker(sMsg)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(sMsg)
+                .build();
+        NotificationManager notificationManager =(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(NOTI_ID, noti);
     }
 }

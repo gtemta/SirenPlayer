@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="title_update_location">記事儲存的位置</string>
+    <string name="message_update_location">更新或清除儲存的位置資訊?</string>
+    <string name="update">更新</string>
+    <string name="clear">清除</string>
+
+    <string name="title_current_location">目前位置</string>
+    <string name="message_current_location">是否儲存目前位置?</string>
+
+    <string name="google_play_service_missing">裝置沒有安裝Google Play服務</string>
+
+
+</resources>
