@@ -2,12 +2,19 @@ package nctu.imf.sirenplayer;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.PixelFormat;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.youtube.player.YouTubeBaseActivity;
@@ -27,18 +34,29 @@ public class PlayerActivity extends YouTubeBaseActivity
     private static final int RECOVERY_DIALOG_REQUEST = 1;
     private AudioManager audioManager;
     private String TAG="PlayerActivity";
-
+    WindowManager wm=null;
+    WindowManager.LayoutParams wmParams=null;
+    public int xLast=0;
+    public int yLast=0;
+    public int xC =60;
+    public int yC =40;
+    private boolean isMoving= false;
+    private boolean isFirst =true;
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         audioManager.getMode();
-
-        setContentView(R.layout.activity_player);
-
-        playerView= new YouTubePlayerView(PlayerActivity.this);
-        playerView = (YouTubePlayerView)findViewById(R.id.youtube_view);
-        playerView.initialize(DeveloperKey.DEVELOPER_KEY, PlayerActivity.this);
+        if(wm==null){
+            createView();
+            Log.i(TAG, "createView()");
+        }
+//        setContentView(R.layout.activity_player);
+//
+//
+//        playerView= new YouTubePlayerView(PlayerActivity.this);
+//        playerView = (YouTubePlayerView)findViewById(R.id.youtube_view);
+//        playerView.initialize(DeveloperKey.DEVELOPER_KEY, PlayerActivity.this);
     }
 
     @Override
@@ -48,6 +66,66 @@ public class PlayerActivity extends YouTubeBaseActivity
         // Register mMessageReceiver to receive messages.
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("my-event"));
+    }
+    private void createView() {
+        playerView = new YouTubePlayerView(PlayerActivity.this);
+        playerView.initialize(DeveloperKey.DEVELOPER_KEY, this);
+        wm = (WindowManager)getApplicationContext().getSystemService(WINDOW_SERVICE);
+        wmParams = new WindowManager.LayoutParams();
+        wmParams.type=WindowManager.LayoutParams.TYPE_PHONE;// 漂浮層次
+        wmParams.format= PixelFormat.RGBA_8888;//透明按鍵
+        wmParams.flags=WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE; // 下這個才可以移動背景
+        wmParams.gravity= Gravity.LEFT| Gravity.TOP;// 設定座標的基準左上
+        wmParams.width=960;// 設定IB寬度
+        wmParams.height=540;//設定IB高度
+        wmParams.x=xC;// 初始x位置
+        wmParams.y=yC; //初始y位置
+        wm.addView(playerView, wmParams);// 將IB與wmParam加入wm中
+
+        playerView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                    isMoving = true;
+                    if(!isFirst){
+                        xC = xC + (int) event.getRawX() - xLast;
+                        yC = yC + (int) event.getRawY() - yLast;
+                        updateView(xC, yC);
+                    }
+                    xLast = (int) event.getRawX();
+                    yLast = (int) event.getRawY();
+                    isFirst=false;
+                }
+                if(event.getAction()== MotionEvent.ACTION_UP){
+                    isMoving=false;
+                    isFirst =true;
+                }
+                return false;
+            }
+        });
+        playerView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!isMoving){
+                    //do something here
+                }
+            }
+        });
+        playerView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(!isMoving){
+                    Toast.makeText(PlayerActivity.this,"What's up dude!",Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+        });;
+    }
+
+    private void updateView(int x,int y) {
+        wmParams.x=x;
+        wmParams.y=y;
+        wm.updateViewLayout(playerView, wmParams);
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
