@@ -29,153 +29,33 @@ import java.util.TimerTask;
  */
 public class MainService extends Service{
     private static final String TAG="MainService";
-    SpeechRecognizer speechRecognizer;
-//    ImageButton imgBtn=null;
-//    WindowManager windowManager=null;
-//    WindowManager.LayoutParams wmLayoutParams;
-    private int xLast=0;
-    private int yLast=0;
-    private int xC=100;
-    private int yC=100;
-//    TimeThread timeThread;
-    private boolean isSpeaking =false;
-    private boolean needRestart =false;
-    private boolean isMoving= false;
-    private boolean isFirst =true;
-    Intent intent;
-    Timer timer;
-    int countDown=5;
-    int overTime=0;
+    private SpeechRecognizer speechRecognizer;
+    private Intent intent;
+    private listener myListener;
+    private Handler handler;
+    private Runnable runnable;
+
+
     @Override
     public void onCreate() {
         super.onCreate();
+        myListener=new listener();
         intent=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
 
-//        createBTN();
+        handler=new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainService.this);
+                speechRecognizer.setRecognitionListener(myListener);
+                speechRecognizer.startListening(intent);
+            }
+        }, 5000);
 
-        timer = new Timer();
-        speechRecognizer=SpeechRecognizer.createSpeechRecognizer(MainService.this);
-        speechRecognizer.setRecognitionListener(new listener());
-        speechRecognizer.startListening(intent);
-        timer.schedule(timerTask, 5000, 2000);
-
-//        timeThread=new TimeThread();
-//        timeThread.start();
     }
-
-    private TimerTask timerTask=new TimerTask() {
-        @Override
-        public void run() {
-            if(needRestart){//得到onError,onResults
-                myHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        restartSpeechRecognizer();
-                        Log.i(TAG, "restartSpeechRecognizer #0");
-                    }
-                });
-            }
-            else if(!isSpeaking) {//沒在講話
-                countDown--;
-                if(countDown<=0){
-                    myHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            restartSpeechRecognizer();
-                            Log.i(TAG, "restartSpeechRecognizer #1");
-                        }
-                    });
-                }
-            }else if(isSpeaking && countDown>0){//正在講話，且未超時
-                countDown--;
-                if(countDown<0){
-                    overTime++;
-                }
-            }else if (overTime>3) {//已超時
-                myHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        restartSpeechRecognizer();
-                        Log.i(TAG, "restartSpeechRecognizer #2");
-                    }
-                });
-                overTime=0;
-            } else {
-                //noMore
-            }
-            Message msg=new Message();
-            msg.what=countDown;
-            myHandler.sendMessage(msg);
-        }
-    };
-
-    private Handler myHandler =new Handler(){
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what){
-//                case 0:
-//                    break;
-//                case 1:
-//                    imgBtn.setImageResource(R.drawable.number1);
-//                    break;
-//                case 2:
-//                    imgBtn.setImageResource(R.drawable.number2);
-//                    break;
-//                case 3:
-//                    imgBtn.setImageResource(R.drawable.number3);
-//                    break;
-//                case 4:
-//                    imgBtn.setImageResource(R.drawable.number4);
-//                    break;
-//                case 5:
-//                    imgBtn.setImageResource(R.drawable.number5);
-//                    break;
-            }
-            super.handleMessage(msg);
-        }
-    };
-
-/*
-    class TimeThread extends Thread {
-        @Override
-        public void run() {
-            while(!isSpeaking){
-                try{
-                    for (int i=5;i>0;i--){
-                        Log.i(TAG, String.valueOf(i));
-                        if(isSpeaking){
-                            return;
-                        }
-                        Message msg=new Message();
-                        msg.what=i;
-                        myHandler.sendMessage(msg);
-                        sleep(1000);
-                    }
-                }catch(Exception e) {
-                    e.printStackTrace();
-                }
-                if(!isSpeaking){
-                    //time out
-                    //restartSpeechRecognizer();
-                }else {
-                    for (int j = 0; j < 3; j++) {
-                        try {
-                            sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        if (!isSpeaking ||j==2) {
-                            //restartSpeechRecognizer();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }*/
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -184,95 +64,29 @@ public class MainService extends Service{
 
     @Override
     public void onDestroy() {
-        Log.d(TAG,"onDestroy");
-        timer.cancel();
-//        if (timeThread!=null) {
-//            timeThread.interrupt();
-//            timeThread=null;
-//            Log.i(TAG,"timeThread.interrupt()");
-//        }
-        Intent intent=new Intent();
-        intent.setAction("nctu.imf.sirenplayer.MainService");
-        intent.setPackage(getPackageName());
-        stopService(intent);
-        speechRecognizer.destroy();
-//        windowManager.removeView(imgBtn);
-        super.onDestroy();
-    }
-
-//    private void createBTN() {
-//        imgBtn = new ImageButton(getApplicationContext());
-//        imgBtn.setImageResource(R.drawable.number0);
-//        windowManager = (WindowManager)getApplicationContext().getSystemService(WINDOW_SERVICE);
-//        wmLayoutParams = new WindowManager.LayoutParams();
-//        wmLayoutParams.type=WindowManager.LayoutParams.TYPE_PHONE;
-//        wmLayoutParams.format= PixelFormat.RGBA_8888;
-//        wmLayoutParams.flags=WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-//        wmLayoutParams.gravity= Gravity.LEFT| Gravity.TOP;
-//        wmLayoutParams.width=WindowManager.LayoutParams.WRAP_CONTENT;
-//        wmLayoutParams.height=WindowManager.LayoutParams.WRAP_CONTENT;
-//        wmLayoutParams.x=xC;
-//        wmLayoutParams.y=yC;
-//        windowManager.addView(imgBtn, wmLayoutParams);
-//
-//        imgBtn.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if (event.getAction() == MotionEvent.ACTION_MOVE) {
-//                    isMoving = true;
-//                    if(!isFirst){
-//                        xC = xC + (int) event.getRawX() - xLast;
-//                        yC = yC + (int) event.getRawY() - yLast;
-//                        updateView(xC, yC);
-//                    }
-//                    xLast = (int) event.getRawX();
-//                    yLast = (int) event.getRawY();
-//                    isFirst=false;
-//                }
-//                if(event.getAction()==MotionEvent.ACTION_UP){
-//                    isMoving=false;
-//                    isFirst =true;
-//                }
-//                return false;
-//            }
-//        });
-//        imgBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(!isMoving){
-//                    //do something here
-//                }
-//            }
-//        });
-//        imgBtn.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//                if (!isMoving) {
-//                    MainService.this.onDestroy();
-//                }
-//                return true;
-//            }
-//        });
-//    }
-
-//    private void updateView(int x,int y) {
-//        wmLayoutParams.x=x;
-//        wmLayoutParams.y=y;
-//        windowManager.updateViewLayout(imgBtn, wmLayoutParams);
-//    }
-
-    private void restartSpeechRecognizer(){
+        Log.d(TAG, "onDestroy");
         speechRecognizer.stopListening();
         speechRecognizer.cancel();
         speechRecognizer.destroy();
-        speechRecognizer=null;
-        speechRecognizer=SpeechRecognizer.createSpeechRecognizer(MainService.this);
-        speechRecognizer.setRecognitionListener(new listener());
-        speechRecognizer.startListening(intent);
-        needRestart=false;
-        isSpeaking=false;
-        countDown=5;
-        overTime=0;
+        handler.removeCallbacks(runnable);
+        stopSelf();
+        super.onDestroy();
+    }
+
+    private void restartSpeechRecognizer() {
+        Log.d(TAG, "restartSpeechRecognizer");
+        speechRecognizer.stopListening();
+        speechRecognizer.cancel();
+        speechRecognizer.destroy();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainService.this);
+                speechRecognizer.setRecognitionListener(new listener());
+                speechRecognizer.startListening(intent);
+            }
+        };
+        handler.postDelayed(runnable,1000);
     }
 
     class listener implements RecognitionListener {
@@ -283,13 +97,11 @@ public class MainService extends Service{
 
         @Override
         public void onBeginningOfSpeech() {
-            isSpeaking=true;
             Log.i(TAG,"onBeginningOfSpeech");
         }
 
         @Override
         public void onRmsChanged(float rmsdB) {
-//            Log.i(TAG,"onRmsChanged");
         }
 
         @Override
@@ -304,23 +116,47 @@ public class MainService extends Service{
 
         @Override
         public void onError(int error) {
-            needRestart=true;
-            isSpeaking=false;
             Log.i(TAG,"onError:"+error);
+            switch (error){
+                case 1:
+                    Log.d(TAG,"Network operation timed out.");
+                    break;
+                case 2:
+                    Log.d(TAG,"Other network related errors.");
+                    break;
+                case 3:
+                    Log.d(TAG,"Audio recording error.");
+                    break;
+                case 4:
+                    Log.d(TAG,"Server sends error status.");
+                    break;
+                case 5:
+                    Log.d(TAG,"Other client side errors.");
+                    break;
+                case 6:
+                    Log.d(TAG, "No speech input.");
+                    break;
+                case 7:
+                    Log.d(TAG, "No recognition result matched.");
+                    break;
+                case 8:
+                    Log.d(TAG,"RecognitionService busy.");
+                    break;
+                case 9:
+                    Log.d(TAG,"Insufficient permissions");
+                    break;
+            }
+            restartSpeechRecognizer();
+
         }
 
         @Override
         public void onResults(Bundle results) {
             Log.i(TAG,"onResults");
             ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            String str=(String)data.get(0);
-//            if(str=="關閉語音"){
-//                MainService.this.onDestroy();
-//            }
+            String str= (String) data.get(0);
             sendResult(str);
-            Log.d(TAG, str);
-            needRestart=true;
-            isSpeaking=false;
+            restartSpeechRecognizer();
         }
 
         @Override
@@ -336,7 +172,6 @@ public class MainService extends Service{
 
     private void sendResult(String str) {
         Intent intent = new Intent("my-event");
-        // add data
         intent.putExtra("result", str);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }

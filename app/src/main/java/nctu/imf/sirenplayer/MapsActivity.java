@@ -4,9 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -67,24 +69,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        mMap=mapFragment.getMap();
         mapFragment.getMapAsync(this);
         // 建立Google API用戶端物件
         configGoogleApiClient();
         // 建立Location請求物件
         configLocationRequest();
 
+        LatLng taiwan=new LatLng(25.033408, 121.564099);
+        setUpMap(taiwan);
     }
-
-    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Extract data included in the Intent
-            String result = intent.getStringExtra("result");
-            Log.d("receiver", "Got message: " + result);
-            Toast.makeText(MapsActivity.this, result.toUpperCase(), Toast.LENGTH_SHORT).show();
-        }
-    };
-
 
     // ConnectionCallbacks
     @Override
@@ -148,31 +142,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+        if(mMap==null){
+            mMap = googleMap;
+        }
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+//        LatLng sydney = new LatLng(-34, 151);
+//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
     // 移動地圖到參數指定的位置
-    private void moveMap(LatLng place) {
+    private void moveMap(LatLng movePlace) {
         // 建立地圖攝影機的位置物件
-        CameraPosition cameraPosition =
-                new CameraPosition.Builder()
-                        .target(place)
-                        .zoom(17)
-                        .build();
+
+        CameraPosition cameraPosition =new CameraPosition(movePlace,
+                        10f,
+                        mMap.getCameraPosition().tilt,
+                        mMap.getCameraPosition().bearing);
 
         // 使用動畫的效果移動地圖
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition),2000,null);
     }
-    private void setUpMap() {
+    private void setUpMap(LatLng latLng) {
         // 刪除原來預設的內容
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
 
         // 建立位置的座標物件
-        LatLng place = new LatLng(25.033408, 121.564099);
+        LatLng place = new LatLng(latLng.latitude,latLng.longitude);
         // 移動地圖
         moveMap(place);
     }
@@ -193,6 +189,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+                new IntentFilter("my-event"));
         //setUpMapIfNeeded();
 
         // 連線到Google API用戶端
@@ -215,11 +213,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onStop() {
         super.onStop();
-
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         // 移除Google API用戶端連線
         if (googleApiClient.isConnected()) {
             googleApiClient.disconnect();
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Extract data included in the Intent
+            String result = intent.getStringExtra("result");
+            Log.d("receiver", "Got message: " + result);
+            Toast.makeText(MapsActivity.this,result.toUpperCase(),Toast.LENGTH_SHORT).show();
+            switch (result.toUpperCase()){
+                case "關閉":
+                    Intent pIntent=new Intent();
+                    pIntent.setAction("nctu.imf.sirenplayer.MainService");
+                    pIntent.setPackage(getPackageName());
+                    stopService(pIntent);
+                    MapsActivity.this.finish();
+                    break;
+            }
+        }
+    };
 }
