@@ -1,13 +1,16 @@
 package nctu.imf.sirenplayer;
 
+
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.location.Location;
-import android.support.v4.app.FragmentActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -27,11 +30,25 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ,ComponentCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
     private GoogleMap mMap;
+    ArrayList<LatLng> markerLatLng;
 
     //=====location====
     // Google API用戶端物件
@@ -42,6 +59,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location currentLocation;
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
+
+    /***************************Location******************************/
+    LatLng taiwan = new LatLng(25.033408, 121.564099);
+
+    /***************************Location******************************/
     // 建立Google API用戶端物件
     private synchronized void configGoogleApiClient() {
         googleApiClient = new GoogleApiClient.Builder(this)
@@ -50,6 +72,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addApi(LocationServices.API)
                 .build();
     }
+
     // 建立Location請求物件
     private void configLocationRequest() {
         locationRequest = new LocationRequest();
@@ -69,14 +92,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mMap=mapFragment.getMap();
+        mMap = mapFragment.getMap();
         mapFragment.getMapAsync(this);
         // 建立Google API用戶端物件
         configGoogleApiClient();
         // 建立Location請求物件
         configLocationRequest();
+        markerLatLng=new ArrayList<>();
 
-        LatLng taiwan=new LatLng(25.033408, 121.564099);
         setUpMap(taiwan);
     }
 
@@ -107,9 +130,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // 裝置沒有安裝Google Play服務
         if (errorCode == ConnectionResult.SERVICE_MISSING) {
-            Toast.makeText(MapsActivity.this, R.string.google_play_service_missing,Toast.LENGTH_LONG).show();
+            Toast.makeText(MapsActivity.this, R.string.google_play_service_missing, Toast.LENGTH_LONG).show();
         }
     }
+
     // LocationListener
     //@Override
     public void onLocationChanged(Location location) {
@@ -122,8 +146,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 設定目前位置的標記
         if (currentMarker == null) {
             currentMarker = mMap.addMarker(new MarkerOptions().position(latLng));
-        }
-        else {
+        } else {
             currentMarker.setPosition(latLng);
         }
 
@@ -131,18 +154,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         moveMap(latLng);
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
+
     @Override
+
     public void onMapReady(GoogleMap googleMap) {
-        if(mMap==null){
+        if (mMap == null) {
             mMap = googleMap;
         }
 
@@ -151,27 +167,83 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
+
     // 移動地圖到參數指定的位置
     private void moveMap(LatLng movePlace) {
         // 建立地圖攝影機的位置物件
 
-        CameraPosition cameraPosition =new CameraPosition(movePlace,
-                        10f,
-                        mMap.getCameraPosition().tilt,
-                        mMap.getCameraPosition().bearing);
+        CameraPosition cameraPosition = new CameraPosition(movePlace,
+                10f,
+                mMap.getCameraPosition().tilt,
+                mMap.getCameraPosition().bearing);
 
         // 使用動畫的效果移動地圖
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition),2000,null);
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
     }
+
     private void setUpMap(LatLng latLng) {
+        if (mMap!=null){
+            // Enable MyLocation Button in the Map
+            mMap.setMyLocationEnabled(true);
+
+            mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    if (markerLatLng.size() > 1) {
+                        markerLatLng.clear();
+                        mMap.clear();
+                    }
+
+                    // Adding new item to the ArrayList
+                    markerLatLng.add(latLng);
+
+                    // Creating MarkerOptions
+                    MarkerOptions options = new MarkerOptions();
+
+                    // Setting the position of the marker
+                    options.position(latLng);
+
+                    /**
+                     * 起始及終點位置符號顏色
+                     */
+                    if (markerLatLng.size() == 1) {
+                        options.icon(BitmapDescriptorFactory
+                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN)); //起點符號顏色
+                    } else if (markerLatLng.size() == 2) {
+                        options.icon(BitmapDescriptorFactory
+                                .defaultMarker(BitmapDescriptorFactory.HUE_RED)); //終點符號顏色
+                    }
+
+                    // Add new marker to the Google Map Android API V2
+                    mMap.addMarker(options);
+
+                    // Checks, whether start and end locations are captured
+                    if (markerLatLng.size() >= 2) {
+                        LatLng origin = markerLatLng.get(0);
+                        LatLng dest = markerLatLng.get(1);
+
+                        // Getting URL to the Google Directions API
+                        String url = getDirectionsUrl(origin, dest);
+
+                        DownloadTask downloadTask = new DownloadTask();
+
+                        // Start downloading json data from Google Directions
+                        // API
+                        downloadTask.execute(url);
+                    }
+                }
+            });
+        }
+
         // 刪除原來預設的內容
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
 
         // 建立位置的座標物件
-        LatLng place = new LatLng(latLng.latitude,latLng.longitude);
+        LatLng place = new LatLng(latLng.latitude, latLng.longitude);
         // 移動地圖
         moveMap(place);
     }
+
     // 在地圖加入指定位置與標題的標記
     private void addMarker(LatLng place, String title, String snippet) {
         BitmapDescriptor icon =
@@ -231,10 +303,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Extract data included in the Intent
             String result = intent.getStringExtra("result");
             Log.d("receiver", "Got message: " + result);
-            Toast.makeText(MapsActivity.this,result.toUpperCase(),Toast.LENGTH_SHORT).show();
-            switch (result.toUpperCase()){
+            Toast.makeText(MapsActivity.this, result.toUpperCase(), Toast.LENGTH_SHORT).show();
+            switch (result.toUpperCase()) {
                 case "關閉":
-                    Intent pIntent=new Intent();
+                    Intent pIntent = new Intent();
                     pIntent.setAction("nctu.imf.sirenplayer.MainService");
                     pIntent.setPackage(getPackageName());
                     stopService(pIntent);
@@ -243,4 +315,167 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     };
+
+    /*****************發送url至google取得路徑方法*******************/
+    /*****************以下包含連線下載解析與繪製路線*******************/
+    private String getDirectionsUrl(LatLng origin, LatLng dest) {
+
+        // Origin of route
+        String str_origin = "origin=" + origin.latitude + ","
+                + origin.longitude;
+
+        // Destination of route
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+
+        // Sensor enabled
+        String sensor = "sensor=false";
+
+        // Building the parameters to the web service
+        String parameters = str_origin + "&" + str_dest + "&" + sensor;
+
+        // Output format
+        String output = "json";
+
+        // Building the url to the web service
+        String url = "https://maps.googleapis.com/maps/api/directions/"
+                + output + "?" + parameters;
+
+        return url;
+    }
+
+    /*************從URL下載JSON資料的方法***************/
+    private String downloadUrl(String strUrl) throws IOException {
+        String data = "";
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        try {
+            URL url = new URL(strUrl);
+
+            // Creating an http connection to communicate with url
+            urlConnection = (HttpURLConnection) url.openConnection();
+
+            // Connecting to url
+            urlConnection.connect();
+
+            // Reading data from url
+            iStream = urlConnection.getInputStream();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    iStream));
+
+            StringBuffer sb = new StringBuffer();
+
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+
+            data = sb.toString();
+
+            br.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            iStream.close();
+            urlConnection.disconnect();
+        }
+        return data;
+    }
+
+    // Fetches data from url passed
+    private class DownloadTask extends AsyncTask<String, Void, String> {
+
+        // Downloading data in non-ui thread
+        @Override
+        protected String doInBackground(String... url) {
+
+            // For storing data from web service
+            String data = "";
+
+            try {
+                // Fetching the data from web service
+                data = downloadUrl(url[0]);
+            } catch (Exception e) {
+                Log.d("Background Task", e.toString());
+            }
+            return data;
+        }
+
+        // Executes in UI thread, after the execution of
+        // doInBackground()
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            ParserTask parserTask = new ParserTask();
+
+            // Invokes the thread for parsing the JSON data
+            parserTask.execute(result);
+
+        }
+    }
+
+    /**************** 解析JSON格式 ********************/
+    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+
+        // Parsing the data in non-ui thread
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(
+                String... jsonData) {
+
+            JSONObject jObject;
+            List<List<HashMap<String, String>>> routes = null;
+
+            try {
+                jObject = new JSONObject(jsonData[0]);
+                DirectionsJSONParser mParser;
+                mParser = new DirectionsJSONParser();
+
+                // Starts parsing data
+                routes = mParser.parse(jObject);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return routes;
+        }
+
+        // Executes in UI thread, after the parsing process
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> result) {
+            ArrayList<LatLng> points = null;
+            PolylineOptions lineOptions = null;
+            MarkerOptions markerOptions = new MarkerOptions();
+
+            // Traversing through all the routes
+            for (int i = 0; i < result.size(); i++) {
+                points = new ArrayList<LatLng>();
+                lineOptions = new PolylineOptions();
+
+                // Fetching i-th route
+                List<HashMap<String, String>> path = result.get(i);
+
+                // Fetching all the points in i-th route
+                for (int j = 0; j < path.size(); j++) {
+                    HashMap<String, String> point = path.get(j);
+
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lng = Double.parseDouble(point.get("lng"));
+                    LatLng position = new LatLng(lat, lng);
+
+                    points.add(position);
+                }
+
+                // Adding all the points in the route to LineOptions
+                lineOptions.addAll(points);
+                lineOptions.width(5);  //導航路徑寬度
+                lineOptions.color(Color.BLUE); //導航路徑顏色
+
+            }
+
+            // Drawing polyline in the Google Map for the i-th route
+            mMap.addPolyline(lineOptions);
+        }
+    }
+
 }
