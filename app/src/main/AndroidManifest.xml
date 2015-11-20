@@ -4,9 +4,9 @@
     android:versionCode="2015111301"
     android:versionName="1.0">
 
-    <!--<permission-->
-        <!--android:name="in.wptrafficanalyzer.locationsearchdialogv2.permission.MAPS_RECEIVE"-->
-        <!--android:protectionLevel="signature" />-->
+    <permission
+        android:name="in.wptrafficanalyzer.locationsearchdialogv2.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
     <permission
         android:name="in.wptrafficanalyzer.locationroutedirectionmapv2.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />

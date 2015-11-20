@@ -237,7 +237,7 @@ public class PlaceProvider extends ContentProvider {
             br.close();
 
         }catch(Exception e){
-            Log.d("Exception while downloading url", e.toString());
+            Log.d("ErrorWhileDownloadUrl", e.toString());
         }finally{
             iStream.close();
             urlConnection.disconnect();

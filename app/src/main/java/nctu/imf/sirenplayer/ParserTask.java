@@ -8,6 +8,8 @@ package nctu.imf.sirenplayer;
 
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -22,8 +24,7 @@ import java.util.List;
 
 /**************** 解析JSON格式 ********************/
 public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
-    GoogleMap maps;
-//            =MapsActivity.getMaps();
+    GoogleMap maps=MapsActivity.getMaps();
 
     // Parsing the data in non-ui thread
     @Override
@@ -56,8 +57,6 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
         // Traversing through all the routes
         for (int i = 0; i < result.size(); i++) {
             points = new ArrayList<LatLng>();
-            lineOptions = new PolylineOptions();
-
             // Fetching i-th route
             List<HashMap<String, String>> path = result.get(i);
 
@@ -71,15 +70,22 @@ public class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<Str
 
                 points.add(position);
             }
+            if(points.isEmpty()){
+                continue;
+            }else{
+                lineOptions = new PolylineOptions();
 
-            // Adding all the points in the route to LineOptions
-            lineOptions.addAll(points);
-            lineOptions.width(5);  //導航路徑寬度
-            lineOptions.color(Color.BLUE); //導航路徑顏色
-
+                // Adding all the points in the route to LineOptions
+                lineOptions.addAll(points);
+                lineOptions.width(5);  //導航路徑寬度
+                lineOptions.color(Color.RED); //導航路徑顏色
+            }
         }
-
-        // Drawing polyline in the Google Map for the i-th route
-        maps.addPolyline(lineOptions);
+        if (lineOptions!=null){
+            // Drawing polyline in the Google Map for the i-th route
+            maps.addPolyline(lineOptions);
+        }else{
+            Log.d("ParserTask","lineOptions is null, cannot add polyline");
+        }
     }
 }

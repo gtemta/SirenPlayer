@@ -54,9 +54,7 @@ import java.util.ArrayList;
  */
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
-        ,ComponentCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks
-//        , LoaderCallbacks<Cursor>
-{
+        ,ComponentCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LoaderCallbacks<Cursor>{
 
     private static GoogleMap mMap;
     ArrayList<LatLng> markerLatLng;
@@ -111,8 +109,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         configLocationRequest();
         markerLatLng=new ArrayList<>();
 
-        setUpMap(taiwan);
-//        handleIntent(getIntent());
+        handleIntent(getIntent());
     }
 
     // ConnectionCallbacks
@@ -147,7 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     // LocationListener
-    //@Override
+//    @Override
     public void onLocationChanged(Location location) {
         // 位置改變
         // Location參數是目前的位置
@@ -168,16 +165,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     @Override
-
     public void onMapReady(GoogleMap googleMap) {
         if (mMap == null) {
             mMap = googleMap;
         }
 
         // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+//        mMap.addMarker(new MarkerOptions().position(taiwan).title("Taiwan"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(taiwan));
+        setUpMap(taiwan);
     }
 
     // 移動地圖到參數指定的位置
@@ -431,85 +427,87 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return mMap;
     }
 
-//    /***********以下是自動提示搜尋結果功能**********/
-//    private void handleIntent(Intent intent){
-//        if(intent.getAction().equals(Intent.ACTION_SEARCH)){
-//            doSearch(intent.getStringExtra(SearchManager.QUERY));
-//        }else if(intent.getAction().equals(Intent.ACTION_VIEW)){
-//            getPlace(intent.getStringExtra(SearchManager.EXTRA_DATA_KEY));
-//        }
-//    }
-//
-//    @Override
-//    protected void onNewIntent(Intent intent) {
-//        super.onNewIntent(intent);
-//        setIntent(intent);
-//        handleIntent(intent);
-//    }
-//
-//    private void doSearch(String query){
-//        Bundle data = new Bundle();
-//        data.putString("query", query);
-//        getSupportLoaderManager().restartLoader(0, data, this);
-//    }
-//
-//    private void getPlace(String query){
-//        Bundle data = new Bundle();
-//        data.putString("query", query);
-//        getSupportLoaderManager().restartLoader(1, data, this);
-//    }
-//
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onMenuItemSelected(int featureId, MenuItem item) {
-//        switch(item.getItemId()){
-//            case R.id.action_search:
-//                onSearchRequested();
-//                break;
-//        }
-//        return super.onMenuItemSelected(featureId, item);
-//    }
-//
-//    @Override
-//    public Loader<Cursor> onCreateLoader(int arg0, Bundle query) {
-//        CursorLoader cLoader = null;
-//        if(arg0==0)
-//            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.SEARCH_URI, null, null, new String[]{ query.getString("query") }, null);
-//        else if(arg0==1)
-//            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.DETAILS_URI, null, null, new String[]{ query.getString("query") }, null);
-//        return cLoader;
-//    }
-//
-//    @Override
-//    public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
-//        showLocations(c);
-//    }
-//
-//    @Override
-//    public void onLoaderReset(Loader<Cursor> arg0) {
-//        // TODO Auto-generated method stub
-//    }
-//
-//    private void showLocations(Cursor c){
-//        MarkerOptions markerOptions = null;
-//        LatLng position = null;
-//        mMap.clear();
-//        while(c.moveToNext()){
-//            markerOptions = new MarkerOptions();
-//            position = new LatLng(Double.parseDouble(c.getString(1)),Double.parseDouble(c.getString(2)));
-//            markerOptions.position(position);
-//            markerOptions.title(c.getString(0));
-//            mMap.addMarker(markerOptions);
-//        }
-//        if(position!=null){
-//            CameraUpdate cameraPosition = CameraUpdateFactory.newLatLng(position);
-//            mMap.animateCamera(cameraPosition);
-//        }
-//    }
+    /***********以下是自動提示搜尋結果功能**********/
+    private void handleIntent(Intent intent){
+        if(intent.getAction().equals(Intent.ACTION_SEARCH)){
+            doSearch(intent.getStringExtra(SearchManager.QUERY));
+            Log.d("MapsActivity","Intent.ACTION_SEARCH");
+        }else if(intent.getAction().equals(Intent.ACTION_VIEW)){
+            getPlace(intent.getStringExtra(SearchManager.EXTRA_DATA_KEY));
+            Log.d("MapsActivity", "Intent.EXTRA_DATA_KEY");
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void doSearch(String query){
+        Bundle data = new Bundle();
+        data.putString("query", query);
+        getSupportLoaderManager().restartLoader(0, data, this);
+    }
+
+    private void getPlace(String query){
+        Bundle data = new Bundle();
+        data.putString("query", query);
+        getSupportLoaderManager().restartLoader(1, data, this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.action_search:
+                onSearchRequested();
+                break;
+        }
+        return super.onMenuItemSelected(featureId, item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int arg0, Bundle query) {
+        CursorLoader cLoader = null;
+        if(arg0==0)
+            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.SEARCH_URI, null, null, new String[]{ query.getString("query") }, null);
+        else if(arg0==1)
+            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.DETAILS_URI, null, null, new String[]{ query.getString("query") }, null);
+        return cLoader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
+        showLocations(c);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> arg0) {
+        // TODO Auto-generated method stub
+    }
+
+    private void showLocations(Cursor c){
+        MarkerOptions markerOptions = null;
+        LatLng position = null;
+        mMap.clear();
+        while(c.moveToNext()){
+            markerOptions = new MarkerOptions();
+            position = new LatLng(Double.parseDouble(c.getString(1)),Double.parseDouble(c.getString(2)));
+            markerOptions.position(position);
+            markerOptions.title(c.getString(0));
+            mMap.addMarker(markerOptions);
+        }
+        if(position!=null){
+            CameraUpdate cameraPosition = CameraUpdateFactory.newLatLng(position);
+            mMap.animateCamera(cameraPosition);
+        }
+    }
 }
