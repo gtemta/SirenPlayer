@@ -2,6 +2,8 @@ package nctu.imf.sirenplayer;
 
 /**
  * Created by jason on 15/11/13.
+ * reference
+ * http://www.cheng-min-i-taiwan.blogspot.tw/2013/04/google-maps-android-api-v2-android.html
  */
 
 import com.google.android.gms.maps.model.LatLng;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/***導航使用***/
 /*************************DirectionsJSONParser*************************/
 public class DirectionsJSONParser {
 

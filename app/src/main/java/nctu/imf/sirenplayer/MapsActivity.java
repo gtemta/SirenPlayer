@@ -1,18 +1,24 @@
 package nctu.imf.sirenplayer;
 
 
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
+import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.CursorLoader;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -20,6 +26,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,9 +37,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
-
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,13 +45,20 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+
+/**
+ * Created by jason on 15/11/13.
+ * reference
+ * http://www.cheng-min-i-taiwan.blogspot.tw/2013/04/google-maps-android-api-v2-android.html
+ * http://wptrafficanalyzer.in/blog/adding-google-places-autocomplete-api-as-custom-suggestions-in-android-search-dialog/
+ */
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
-        ,ComponentCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+        ,ComponentCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks
+//        , LoaderCallbacks<Cursor>
+{
 
-    private GoogleMap mMap;
+    private static GoogleMap mMap;
     ArrayList<LatLng> markerLatLng;
 
     //=====location====
@@ -101,6 +112,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         markerLatLng=new ArrayList<>();
 
         setUpMap(taiwan);
+//        handleIntent(getIntent());
     }
 
     // ConnectionCallbacks
@@ -317,7 +329,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     };
 
     /*****************發送url至google取得路徑方法*******************/
-    /*****************以下包含連線下載解析與繪製路線*******************/
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
         // Origin of route
@@ -416,66 +427,89 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    /**************** 解析JSON格式 ********************/
-    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
-
-        // Parsing the data in non-ui thread
-        @Override
-        protected List<List<HashMap<String, String>>> doInBackground(
-                String... jsonData) {
-
-            JSONObject jObject;
-            List<List<HashMap<String, String>>> routes = null;
-
-            try {
-                jObject = new JSONObject(jsonData[0]);
-                DirectionsJSONParser mParser;
-                mParser = new DirectionsJSONParser();
-
-                // Starts parsing data
-                routes = mParser.parse(jObject);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return routes;
-        }
-
-        // Executes in UI thread, after the parsing process
-        @Override
-        protected void onPostExecute(List<List<HashMap<String, String>>> result) {
-            ArrayList<LatLng> points = null;
-            PolylineOptions lineOptions = null;
-            MarkerOptions markerOptions = new MarkerOptions();
-
-            // Traversing through all the routes
-            for (int i = 0; i < result.size(); i++) {
-                points = new ArrayList<LatLng>();
-                lineOptions = new PolylineOptions();
-
-                // Fetching i-th route
-                List<HashMap<String, String>> path = result.get(i);
-
-                // Fetching all the points in i-th route
-                for (int j = 0; j < path.size(); j++) {
-                    HashMap<String, String> point = path.get(j);
-
-                    double lat = Double.parseDouble(point.get("lat"));
-                    double lng = Double.parseDouble(point.get("lng"));
-                    LatLng position = new LatLng(lat, lng);
-
-                    points.add(position);
-                }
-
-                // Adding all the points in the route to LineOptions
-                lineOptions.addAll(points);
-                lineOptions.width(5);  //導航路徑寬度
-                lineOptions.color(Color.BLUE); //導航路徑顏色
-
-            }
-
-            // Drawing polyline in the Google Map for the i-th route
-            mMap.addPolyline(lineOptions);
-        }
+    public static GoogleMap getMaps(){
+        return mMap;
     }
 
+//    /***********以下是自動提示搜尋結果功能**********/
+//    private void handleIntent(Intent intent){
+//        if(intent.getAction().equals(Intent.ACTION_SEARCH)){
+//            doSearch(intent.getStringExtra(SearchManager.QUERY));
+//        }else if(intent.getAction().equals(Intent.ACTION_VIEW)){
+//            getPlace(intent.getStringExtra(SearchManager.EXTRA_DATA_KEY));
+//        }
+//    }
+//
+//    @Override
+//    protected void onNewIntent(Intent intent) {
+//        super.onNewIntent(intent);
+//        setIntent(intent);
+//        handleIntent(intent);
+//    }
+//
+//    private void doSearch(String query){
+//        Bundle data = new Bundle();
+//        data.putString("query", query);
+//        getSupportLoaderManager().restartLoader(0, data, this);
+//    }
+//
+//    private void getPlace(String query){
+//        Bundle data = new Bundle();
+//        data.putString("query", query);
+//        getSupportLoaderManager().restartLoader(1, data, this);
+//    }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+//        switch(item.getItemId()){
+//            case R.id.action_search:
+//                onSearchRequested();
+//                break;
+//        }
+//        return super.onMenuItemSelected(featureId, item);
+//    }
+//
+//    @Override
+//    public Loader<Cursor> onCreateLoader(int arg0, Bundle query) {
+//        CursorLoader cLoader = null;
+//        if(arg0==0)
+//            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.SEARCH_URI, null, null, new String[]{ query.getString("query") }, null);
+//        else if(arg0==1)
+//            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.DETAILS_URI, null, null, new String[]{ query.getString("query") }, null);
+//        return cLoader;
+//    }
+//
+//    @Override
+//    public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
+//        showLocations(c);
+//    }
+//
+//    @Override
+//    public void onLoaderReset(Loader<Cursor> arg0) {
+//        // TODO Auto-generated method stub
+//    }
+//
+//    private void showLocations(Cursor c){
+//        MarkerOptions markerOptions = null;
+//        LatLng position = null;
+//        mMap.clear();
+//        while(c.moveToNext()){
+//            markerOptions = new MarkerOptions();
+//            position = new LatLng(Double.parseDouble(c.getString(1)),Double.parseDouble(c.getString(2)));
+//            markerOptions.position(position);
+//            markerOptions.title(c.getString(0));
+//            mMap.addMarker(markerOptions);
+//        }
+//        if(position!=null){
+//            CameraUpdate cameraPosition = CameraUpdateFactory.newLatLng(position);
+//            mMap.animateCamera(cameraPosition);
+//        }
+//    }
 }
