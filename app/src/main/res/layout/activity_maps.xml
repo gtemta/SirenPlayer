@@ -9,4 +9,11 @@
         android:layout_height="match_parent"
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment" />
+    <AutoCompleteTextView
+        android:id="@+id/autocomplete_places"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:hint="@string/autocomplete_hint"
+        android:singleLine="true" />
 </RelativeLayout>

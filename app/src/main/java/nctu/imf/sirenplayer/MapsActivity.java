@@ -1,32 +1,36 @@
 package nctu.imf.sirenplayer;
 
-
-import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
+import android.content.res.Resources;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.location.places.AutocompletePrediction;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -35,6 +39,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -50,12 +55,12 @@ import java.util.ArrayList;
  * Created by jason on 15/11/13.
  * reference
  * http://www.cheng-min-i-taiwan.blogspot.tw/2013/04/google-maps-android-api-v2-android.html
- * http://wptrafficanalyzer.in/blog/adding-google-places-autocomplete-api-as-custom-suggestions-in-android-search-dialog/
  */
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
-        ,ComponentCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, LoaderCallbacks<Cursor>{
-
+        ,ComponentCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks
+        ,com.google.android.gms.location.LocationListener{
+    private static final String TAG="MapsActivity";
     private static GoogleMap mMap;
     ArrayList<LatLng> markerLatLng;
 
@@ -75,7 +80,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /***************************Location******************************/
     // 建立Google API用戶端物件
     private synchronized void configGoogleApiClient() {
-        googleApiClient = new GoogleApiClient.Builder(this)
+        // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
+        // functionality, which automatically sets up the API client to handle Activity lifecycle
+        // events. If your activity does not extend FragmentActivity, make sure to call connect()
+        // and disconnect() explicitly.
+        googleApiClient = new GoogleApiClient
+                .Builder(this)
+                .enableAutoManage(this, 0 /* clientId */, this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
@@ -108,8 +121,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 建立Location請求物件
         configLocationRequest();
         markerLatLng=new ArrayList<>();
-
-        handleIntent(getIntent());
+        mAutocompleteView = (AutoCompleteTextView)findViewById(R.id.autocomplete_places);
+        mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
+        mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUNDS_GREATER_SYDNEY,null);
+        mAutocompleteView.setAdapter(mAdapter);
     }
 
     // ConnectionCallbacks
@@ -130,7 +145,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    // OnConnectionFailedListener
+    /**
+     * Called when the Activity could not connect to Google Play services and the auto manager
+     * could resolve the error automatically.
+     * In this case the API is not available and notify the user.
+     *
+     * @param connectionResult can be inspected to determine the cause of the failure
+     */
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         // Google Services連線失敗
@@ -141,6 +162,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (errorCode == ConnectionResult.SERVICE_MISSING) {
             Toast.makeText(MapsActivity.this, R.string.google_play_service_missing, Toast.LENGTH_LONG).show();
         }
+        Log.e(TAG, "onConnectionFailed: ConnectionResult.getErrorCode() = "
+                + connectionResult.getErrorCode());
+
+        // TODO(Developer): Check error code and notify the user of error state and resolution.
+        Toast.makeText(this,
+                "Could not connect to Google API Client: Error " + connectionResult.getErrorCode(),
+                Toast.LENGTH_SHORT).show();
     }
 
     // LocationListener
@@ -160,7 +188,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         // 移動地圖到目前的位置
-        moveMap(latLng);
+//        moveMap(latLng);
     }
 
 
@@ -313,12 +341,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d("receiver", "Got message: " + result);
             Toast.makeText(MapsActivity.this, result.toUpperCase(), Toast.LENGTH_SHORT).show();
             switch (result.toUpperCase()) {
-                case "關閉":
+                case "CLOSE":
                     Intent pIntent = new Intent();
                     pIntent.setAction("nctu.imf.sirenplayer.MainService");
                     pIntent.setPackage(getPackageName());
                     stopService(pIntent);
                     MapsActivity.this.finish();
+                    break;
+                case "CLEAR":
+                    mAutocompleteView.setText("");
                     break;
             }
         }
@@ -427,87 +458,98 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return mMap;
     }
 
-    /***********以下是自動提示搜尋結果功能**********/
-    private void handleIntent(Intent intent){
-        if(intent.getAction().equals(Intent.ACTION_SEARCH)){
-            doSearch(intent.getStringExtra(SearchManager.QUERY));
-            Log.d("MapsActivity","Intent.ACTION_SEARCH");
-        }else if(intent.getAction().equals(Intent.ACTION_VIEW)){
-            getPlace(intent.getStringExtra(SearchManager.EXTRA_DATA_KEY));
-            Log.d("MapsActivity", "Intent.EXTRA_DATA_KEY");
+    /************************************************************/
+
+    /**
+     * GoogleApiClient wraps our service connection to Google Play Services and provides access
+     * to the user's sign in state as well as the Google's APIs.
+     */
+
+    private PlaceAutocompleteAdapter mAdapter;
+
+    private AutoCompleteTextView mAutocompleteView;
+
+    private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
+            new LatLng(25.033408, 121.564099), new LatLng(25.033408, 121.564099));
+
+    /**
+     * Listener that handles selections from suggestions from the AutoCompleteTextView that
+     * displays Place suggestions.
+     * Gets the place id of the selected item and issues a request to the Places Geo Data API
+     * to retrieve more details about the place.
+     *
+     * @see com.google.android.gms.location.places.GeoDataApi#getPlaceById(com.google.android.gms.common.api.GoogleApiClient,
+     * String...)
+     */
+    private AdapterView.OnItemClickListener mAutocompleteClickListener
+            = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            /*
+             Retrieve the place ID of the selected item from the Adapter.
+             The adapter stores each Place suggestion in a AutocompletePrediction from which we
+             read the place ID and title.
+              */
+            final AutocompletePrediction item = mAdapter.getItem(position);
+            final String placeId = item.getPlaceId();
+            final CharSequence primaryText = item.getPrimaryText(null);
+
+            Log.i(TAG, "Autocomplete item selected: " + primaryText);
+
+            /*
+             Issue a request to the Places Geo Data API to retrieve a Place object with additional
+             details about the place.
+              */
+            PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.getPlaceById(googleApiClient, placeId);
+            placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
+
+            Log.i(TAG, "Called getPlaceById to get Place details for " + placeId);
         }
-    }
+    };
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        handleIntent(intent);
-    }
+    /**
+     * Callback for results from a Places Geo Data API query that shows the first place result in
+     * the details view on screen.
+     */
+    private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback
+            = new ResultCallback<PlaceBuffer>() {
+        @Override
+        public void onResult(PlaceBuffer places) {
+            if (!places.getStatus().isSuccess()) {
+                // Request did not complete successfully
+                Log.e(TAG, "Place query did not complete. Error: " + places.getStatus().toString());
+                places.release();
+                return;
+            }
+            // Get the Place object from the buffer.
+            final Place place = places.get(0);
 
-    private void doSearch(String query){
-        Bundle data = new Bundle();
-        data.putString("query", query);
-        getSupportLoaderManager().restartLoader(0, data, this);
-    }
+            // Format details of the place for display and show it in a TextView.
+            Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
+                    place.getId(), place.getAddress(), place.getPhoneNumber(),
+                    place.getWebsiteUri())));
+            LatLng latlng=place.getLatLng();
+            Log.d(TAG,"LatLng:"+String.valueOf(latlng));
+            moveMap(latlng);
 
-    private void getPlace(String query){
-        Bundle data = new Bundle();
-        data.putString("query", query);
-        getSupportLoaderManager().restartLoader(1, data, this);
-    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+            // Display the third party attributions if set.
+            final CharSequence thirdPartyAttribution = places.getAttributions();
+            if (thirdPartyAttribution != null) {
+                Log.d(TAG, String.valueOf(Html.fromHtml(thirdPartyAttribution.toString())));
+            }
 
-    @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        switch(item.getItemId()){
-            case R.id.action_search:
-                onSearchRequested();
-                break;
+            Log.i(TAG, "Place details received: " + place.getName());
+
+            places.release();
         }
-        return super.onMenuItemSelected(featureId, item);
+    };
+
+    private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
+                                              CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
+        return Html.fromHtml(res.getString(R.string.place_details, name, id, address, phoneNumber,
+                websiteUri));
+
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int arg0, Bundle query) {
-        CursorLoader cLoader = null;
-        if(arg0==0)
-            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.SEARCH_URI, null, null, new String[]{ query.getString("query") }, null);
-        else if(arg0==1)
-            cLoader = new CursorLoader(getBaseContext(), PlaceProvider.DETAILS_URI, null, null, new String[]{ query.getString("query") }, null);
-        return cLoader;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> arg0, Cursor c) {
-        showLocations(c);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> arg0) {
-        // TODO Auto-generated method stub
-    }
-
-    private void showLocations(Cursor c){
-        MarkerOptions markerOptions = null;
-        LatLng position = null;
-        mMap.clear();
-        while(c.moveToNext()){
-            markerOptions = new MarkerOptions();
-            position = new LatLng(Double.parseDouble(c.getString(1)),Double.parseDouble(c.getString(2)));
-            markerOptions.position(position);
-            markerOptions.title(c.getString(0));
-            mMap.addMarker(markerOptions);
-        }
-        if(position!=null){
-            CameraUpdate cameraPosition = CameraUpdateFactory.newLatLng(position);
-            mMap.animateCamera(cameraPosition);
-        }
-    }
 }
