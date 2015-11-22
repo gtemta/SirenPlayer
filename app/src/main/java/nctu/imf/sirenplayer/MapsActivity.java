@@ -63,6 +63,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String TAG="MapsActivity";
     private static GoogleMap mMap;
     ArrayList<LatLng> markerLatLng;
+    private static boolean isFirstStart=true;
 
     //=====location====
     // Google API用戶端物件
@@ -172,7 +173,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     // LocationListener
-//    @Override
+    @Override
     public void onLocationChanged(Location location) {
         // 位置改變
         // Location參數是目前的位置
@@ -180,15 +181,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(
                 location.getLatitude(), location.getLongitude());
 
-        // 設定目前位置的標記
-        if (currentMarker == null) {
-            currentMarker = mMap.addMarker(new MarkerOptions().position(latLng));
-        } else {
-            currentMarker.setPosition(latLng);
-        }
-
         // 移動地圖到目前的位置
-//        moveMap(latLng);
+        if(isFirstStart){
+            moveMap(latLng);
+            isFirstStart=false;
+        }
     }
 
 
@@ -201,7 +198,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Add a marker in Sydney and move the camera
 //        mMap.addMarker(new MarkerOptions().position(taiwan).title("Taiwan"));
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(taiwan));
-        setUpMap(taiwan);
+
+        setUpMap();
     }
 
     // 移動地圖到參數指定的位置
@@ -217,7 +215,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
     }
 
-    private void setUpMap(LatLng latLng) {
+    private void setUpMap() {
         if (mMap!=null){
             // Enable MyLocation Button in the Map
             mMap.setMyLocationEnabled(true);
@@ -245,51 +243,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if (markerLatLng.size() == 1) {
                         options.icon(BitmapDescriptorFactory
                                 .defaultMarker(BitmapDescriptorFactory.HUE_GREEN)); //起點符號顏色
+                        // 設定目前位置的標記
+                        if (currentMarker == null) {
+                            currentMarker = mMap.addMarker(new MarkerOptions().position(latLng));
+                        } else {
+                            currentMarker.setPosition(latLng);
+                        }
+                        mNavigation(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),latLng);
                     } else if (markerLatLng.size() == 2) {
                         options.icon(BitmapDescriptorFactory
                                 .defaultMarker(BitmapDescriptorFactory.HUE_RED)); //終點符號顏色
+                        mNavigation(markerLatLng.get(0),latLng);
                     }
 
                     // Add new marker to the Google Map Android API V2
                     mMap.addMarker(options);
 
-                    // Checks, whether start and end locations are captured
-                    if (markerLatLng.size() >= 2) {
-                        LatLng origin = markerLatLng.get(0);
-                        LatLng dest = markerLatLng.get(1);
-
-                        // Getting URL to the Google Directions API
-                        String url = getDirectionsUrl(origin, dest);
-
-                        DownloadTask downloadTask = new DownloadTask();
-
-                        // Start downloading json data from Google Directions
-                        // API
-                        downloadTask.execute(url);
-                    }
                 }
             });
         }
+    }
 
-        // 刪除原來預設的內容
-        //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+    private void mNavigation(LatLng origin,LatLng dest){
+        // Checks, whether start and end locations are captured
+        LatLng fromLatLng = origin;
+        LatLng toLatLng = dest;
 
-        // 建立位置的座標物件
-        LatLng place = new LatLng(latLng.latitude, latLng.longitude);
-        // 移動地圖
-        moveMap(place);
+        String url = getDirectionsUrl(fromLatLng, toLatLng);
+
+        DownloadTask downloadTask = new DownloadTask();
+
+        // Start downloading json data from Google Directions
+        // API
+        downloadTask.execute(url);
     }
 
     // 在地圖加入指定位置與標題的標記
     private void addMarker(LatLng place, String title, String snippet) {
         BitmapDescriptor icon =
-                BitmapDescriptorFactory.fromResource(R.drawable.maplocate);
+                BitmapDescriptorFactory.fromResource(R.drawable.marker);
 
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(place)
                 .title(title)
-                .snippet(snippet)
-                .icon(icon);
+                .snippet(snippet);
 
         mMap.addMarker(markerOptions);
     }
@@ -348,8 +345,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     stopService(pIntent);
                     MapsActivity.this.finish();
                     break;
-                case "CLEAR":
+                case "Delete":
                     mAutocompleteView.setText("");
+                    break;
+                case "CLEAR":
+                    mMap.clear();
                     break;
             }
         }
@@ -458,7 +458,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return mMap;
     }
 
-    /************************************************************/
+    /*****************************Autocomplete and search*******************************/
 
     /**
      * GoogleApiClient wraps our service connection to Google Play Services and provides access
@@ -470,7 +470,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private AutoCompleteTextView mAutocompleteView;
 
     private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
-            new LatLng(25.033408, 121.564099), new LatLng(25.033408, 121.564099));
+            new LatLng(22, 120), new LatLng(25.3, 122));
 
     /**
      * Listener that handles selections from suggestions from the AutoCompleteTextView that
@@ -521,6 +521,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 places.release();
                 return;
             }
+            if (markerLatLng.size() > 0) {
+                markerLatLng.clear();
+                mMap.clear();
+            }
             // Get the Place object from the buffer.
             final Place place = places.get(0);
 
@@ -531,6 +535,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng latlng=place.getLatLng();
             Log.d(TAG,"LatLng:"+String.valueOf(latlng));
             moveMap(latlng);
+            addMarker(latlng, String.valueOf(place.getName())
+                    ,String.valueOf(place.getAddress()));
+            mNavigation(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),latlng);
 
 
             // Display the third party attributions if set.
