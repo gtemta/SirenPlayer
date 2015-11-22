@@ -2,12 +2,20 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
+<<<<<<< HEAD
     buildToolsVersion "22.0.1"
+=======
+    buildToolsVersion "23.0.1"
+>>>>>>> origin/master
 
     defaultConfig {
         applicationId "nctu.imf.sirenplayer"
         minSdkVersion 16
+<<<<<<< HEAD
         targetSdkVersion 21
+=======
+        targetSdkVersion 19
+>>>>>>> origin/master
         versionCode 1
         versionName "1.0"
     }

@@ -4,5 +4,9 @@
     <item android:id="@+id/action_search"
         android:orderInCategory="100"
         app:showAsAction="never"
+<<<<<<< HEAD
         android:title="@string/action_settings" />
+=======
+        android:title="@string/action_settings"/>
+>>>>>>> origin/master
 </menu>

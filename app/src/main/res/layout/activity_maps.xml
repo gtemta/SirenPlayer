@@ -4,9 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MapsActivity" >
-    <fragment
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+<<<<<<< HEAD
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment" />
     <AutoCompleteTextView
@@ -27,5 +28,31 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginBottom="50dp" />
+=======
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <AutoCompleteTextView
+                android:id="@+id/autocomplete_places"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:hint="@string/autocomplete_hint"
+                android:singleLine="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <fragment
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment" />
+        </LinearLayout>
+    </LinearLayout>
+>>>>>>> origin/master
 
 </RelativeLayout>
