@@ -41,7 +41,10 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+
 
 /**
  * Adapter that handles Autocomplete requests from the Places Geo Data API.
@@ -89,6 +92,7 @@ public class PlaceAutocompleteAdapter
         mBounds = bounds;
         mPlaceFilter = filter;
     }
+    private DBcontact searchword;
 
     /**
      * Sets the bounds for all subsequent queries.
@@ -196,10 +200,13 @@ public class PlaceAutocompleteAdapter
      */
     private ArrayList<AutocompletePrediction> getAutocomplete(CharSequence constraint) {
         if (mGoogleApiClient.isConnected()) {
-            Log.i(TAG, "Starting autocomplete query for: " + constraint);
 
+            Log.i(TAG, "Starting autocomplete query for: " + constraint);
+            searchword = new DBcontact(0,constraint.toString(),"True",new Date().getTime());
+            DbDAO.insert(searchword);
             // Submit the query to the autocomplete API and retrieve a PendingResult that will
             // contain the results when the query completes.
+
             PendingResult<AutocompletePredictionBuffer> results =
                     Places.GeoDataApi
                             .getAutocompletePredictions(mGoogleApiClient, constraint.toString(),

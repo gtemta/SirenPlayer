@@ -63,6 +63,7 @@ public class DBActivity extends Activity{
                 intent.setClass(DBActivity.this,MapsActivity.class);
                 startActivity(intent);
                DBActivity.this.finish();
+
             }
         });
         records = dbDAO.getAll();
