@@ -16,4 +16,17 @@
         android:layout_gravity="center_horizontal"
         android:hint="@string/autocomplete_hint"
         android:singleLine="true" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DB"
+        android:id="@+id/dbButton"
+        android:layout_below="@+id/autocomplete_places"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="249dp"
+        android:layout_marginEnd="249dp" />
+
 </RelativeLayout>

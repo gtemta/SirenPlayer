@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -73,6 +74,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location currentLocation;
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
+    private Button sw2DB;
+
 
     /***************************Location******************************/
     LatLng taiwan = new LatLng(25.033408, 121.564099);
@@ -125,7 +128,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
         mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUNDS_GREATER_SYDNEY,null);
         mAutocompleteView.setAdapter(mAdapter);
+        sw2DB =(Button)findViewById(R.id.dbButton);
+        sw2DB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(MapsActivity.this, DBActivity.class);
+                startActivity(intent);
+                MapsActivity.this.onPause();
+
+            }
+        });
     }
+
 
     // ConnectionCallbacks
     @Override

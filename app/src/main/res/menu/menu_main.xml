@@ -3,6 +3,5 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MapsActivity">
     <item android:id="@+id/action_search"
         android:orderInCategory="100"
-        app:showAsAction="never"
-        android:title="@string/action_search"/>
+        app:showAsAction="never"/>
 </menu>
