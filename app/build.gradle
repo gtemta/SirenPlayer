@@ -2,17 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-
-    buildToolsVersion "22.0.1"
-
-
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         applicationId "nctu.imf.sirenplayer"
         minSdkVersion 16
-
-        targetSdkVersion 21
-
+        targetSdkVersion 19
         versionCode 1
         versionName "1.0"
     }
@@ -34,9 +29,10 @@ dependencies {
     compile files('src/main/libs/google-http-client-android-1.20.0.jar')
     compile files('src/main/libs/google-http-client-1.20.0.jar')
     compile files('src/main/libs/google-api-services-youtube-v3-rev148-1.20.0.jar')
-    compile files('src/main/libs/goog24-2p1-client-android-1.20.0.jar')
-    compile files('src/7a5n/libs/google-api-client-1.20.0.jar')
+    compile files('src/main/libs/google-api-client-android-1.20.0.jar')
+    compile files('src/main/libs/google-api-client-1.20.0.jar')
     compile 'com.android.support:appcompat-v7:23.1.0'
+    compile 'com.android.support:design:23.1.0'
     compile 'com.google.android.gms:play-services:8.1.0'
 
 }

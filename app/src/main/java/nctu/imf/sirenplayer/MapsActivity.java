@@ -51,6 +51,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by jason on 15/11/13.
@@ -76,6 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
     private Button sw2DB;
+    private DBcontact searchword;
 
 
     /***************************Location******************************/
@@ -129,17 +131,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
         mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUNDS_GREATER_SYDNEY,null);
         mAutocompleteView.setAdapter(mAdapter);
-        sw2DB =(Button)findViewById(R.id.dbButton);
-        sw2DB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setClass(MapsActivity.this, DBActivity.class);
-                startActivity(intent);
-                MapsActivity.this.onPause();
-
-            }
-        });
+//        sw2DB =(Button)findViewById(R.id.dbbutton);
+//        sw2DB.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent();
+//                intent.setClass(MapsActivity.this, DBActivity.class);
+//                startActivity(intent);
+//                MapsActivity.this.onPause();
+//
+//            }
+//        });
     }
 
 
@@ -547,12 +549,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
+            searchword = new  DBcontact(0,place.getName().toString(),"True",new Date().getTime());
+            //DbDAO.insert(searchword);
             LatLng latlng=place.getLatLng();
             Log.d(TAG,"LatLng:"+String.valueOf(latlng));
             moveMap(latlng);
             addMarker(latlng, String.valueOf(place.getName())
-                    ,String.valueOf(place.getAddress()));
-            mNavigation(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),latlng);
+                    , String.valueOf(place.getAddress()));
+            mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latlng);
 
 
             // Display the third party attributions if set.
