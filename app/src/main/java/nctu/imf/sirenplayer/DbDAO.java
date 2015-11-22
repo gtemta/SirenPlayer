@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,13 +18,14 @@ public class DbDAO {
 
     public static final String TABLE_NAME = "Record";
 
-
     public static final String KEY_ID = "_id";
 
 
     public static final String COMMAND = "command";
-    public static final String CONFIRM = "confirm";
     public static final String TIME = "time";
+    public static final String ADRESS = "adress";
+    public DBcontact dBcontact=new DBcontact();
+
 
 
 
@@ -31,11 +33,11 @@ public class DbDAO {
             "CREATE TABLE " + TABLE_NAME + " (" +
                     KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"+
                     COMMAND + " TEXT NOT NULL, " +
-                    CONFIRM + " TEXT ,"  +
-                    TIME + " INTEGER NOT NULL  )";
+                    TIME + " INTEGER NOT NULL ," +
+                    ADRESS +" TEXT NOT NULL )";
 
 
-    private SQLiteDatabase db;
+    private static SQLiteDatabase db;
 
 
     public DbDAO(Context context)
@@ -50,14 +52,14 @@ public class DbDAO {
 
 
 
-    public DBcontact insert(DBcontact dBcontact){
+    public  DBcontact insert(DBcontact dBcontact){
 
         ContentValues cv = new ContentValues();
 
 
         cv.put(COMMAND,dBcontact.get_Command());
         cv.put(TIME,dBcontact.getLocaleDatetime());
-        cv.put(CONFIRM,dBcontact.get_Confirm());
+        cv.put(ADRESS,dBcontact.get_Address());
 
         long id = db.insert(TABLE_NAME, null, cv);
          dBcontact.Setid(id);
@@ -71,7 +73,7 @@ public class DbDAO {
         ContentValues cv = new ContentValues();
         cv.put(COMMAND,item.get_Command());
         cv.put(TIME,item.getLocaleDatetime());
-        cv.put(CONFIRM,item.get_Confirm());
+
 
         String where = KEY_ID + "=" + item.getId();
 
@@ -109,8 +111,9 @@ public class DbDAO {
 
         result.Setid(cursor.getLong(0));
         result.Set_Command(cursor.getString(1));
-        result.Set_Time(cursor.getLong(2));
-        result.Set_Confirm(cursor.getString(3));
+        result.Set_Time(cursor.getString(2));
+        Log.e("cursor","A"+cursor.getString(3));
+        result.Set_Address(cursor.getString(3));
 
 
         return result;
@@ -130,10 +133,10 @@ public class DbDAO {
 
 
     public void sample(){
-        DBcontact RS1= new DBcontact(0,"SampleTest1forDB","True" ,new Date().getTime());
-        DBcontact RS2= new DBcontact(0,"SampleTest2forDB","False",new Date().getTime());
-        DBcontact RS3= new DBcontact(0,"SampleTest3forDB","False",new Date().getTime());
-        DBcontact RS4= new DBcontact(0,"SampleTest4forDB","False",new Date().getTime());
+        DBcontact RS1= new DBcontact(0,"SampleTest1forDB",dBcontact.get_Time(),"WWW");
+        DBcontact RS2= new DBcontact(0,"SampleTest2forDB",dBcontact.get_Time(),"XXX");
+        DBcontact RS3= new DBcontact(0,"SampleTest3forDB",dBcontact.get_Time(),"QDS");
+        DBcontact RS4= new DBcontact(0,"SampleTest4forDB",dBcontact.get_Time(),"FDS");
 
         insert(RS1);
         insert(RS2);

@@ -44,10 +44,11 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
 
              TextView CommandView =(TextView)recordView.findViewById(R.id.record_command);
              TextView TimeView = (TextView)recordView.findViewById(R.id.record_time);
-             TextView ConfirmView = (TextView)recordView.findViewById(R.id.record_confirm);
+
+             TextView AddressView = (TextView)recordView.findViewById(R.id.record_Address);
              CommandView.setText(dBcontact.get_Command());
-             TimeView.setText(dBcontact.getLocaleDatetime());
-             ConfirmView.setText(dBcontact.get_Confirm());
+             TimeView.setText(dBcontact.get_Time());
+             AddressView.setText(dBcontact.get_Address());
 
              return recordView;
          }

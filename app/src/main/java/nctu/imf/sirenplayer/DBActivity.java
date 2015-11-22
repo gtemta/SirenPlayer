@@ -41,10 +41,7 @@ public class DBActivity extends Activity{
        Intent intent = getIntent();
           dbcontact= new DBcontact();
 
-        records = new ArrayList<DBcontact>();
-        records.add(new DBcontact(1, "Test for ListView command 1", "True", new Date().getTime()));
-        records.add(new DBcontact(2, "Test for ListView command 2", "False", new Date().getTime()));
-        records.add(new DBcontact(3, "Test for ListView command 3", "True", new Date().getTime()));
+
         Log.i(TAG, "DB Example join");
 
 
@@ -83,16 +80,16 @@ public class DBActivity extends Activity{
     public void onSubmit(){
 
             String Command =dbcontact.get_Command();
-            String ConfirmCode = dbcontact.get_Confirm();
-            long Time =dbcontact.get_Time();
+            String Time =dbcontact.get_Time();
+            String Address= dbcontact.get_Address();
 
 
 
             Intent result = getIntent();
 
             result.putExtra("Command",Command );
-            result.putExtra("confirmcode", ConfirmCode);
             result.putExtra("Time",Time);
+            result.putExtra("Address",Address);
 
 
             setResult(Activity.RESULT_OK, result);

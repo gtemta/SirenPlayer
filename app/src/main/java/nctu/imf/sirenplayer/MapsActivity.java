@@ -77,7 +77,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location currentLocation;
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
-    private Button sw2DB;
+    private FloatingActionButton sw2DB;
+    private DbDAO dbDAO;
     private DBcontact searchword;
 
 
@@ -125,6 +126,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View view) {
             }
         });
+        dbDAO= new DbDAO(getApplicationContext());
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -139,17 +141,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
         mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUNDS_GREATER_SYDNEY,null);
         mAutocompleteView.setAdapter(mAdapter);
-//        sw2DB =(Button)findViewById(R.id.dbbutton);
-//        sw2DB.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent intent = new Intent();
-//                intent.setClass(MapsActivity.this, DBActivity.class);
-//                startActivity(intent);
-//                MapsActivity.this.onPause();
-//
-//            }
-//        });
+        sw2DB =(FloatingActionButton)findViewById(R.id.fab);
+        sw2DB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(MapsActivity.this, DBActivity.class);
+                startActivity(intent);
+                MapsActivity.this.onPause();
+
+            }
+        });
     }
 
 
@@ -557,8 +559,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
-            searchword = new  DBcontact(0,place.getName().toString(),"True",new Date().getTime());
-            //DbDAO.insert(searchword);
+            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime(),place.getAddress().toString());
+            dbDAO.insert(searchword);
             LatLng latlng=place.getLatLng();
             Log.d(TAG,"LatLng:"+String.valueOf(latlng));
             moveMap(latlng);

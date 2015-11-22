@@ -9,19 +9,20 @@ import java.util.Locale;
 public class DBcontact {
     long _id;
     String _Command;
-    String _Confirm;
-    long _Time;
+    String _Time;
+    String _Address;
 
     public DBcontact(){
         _Command= "";
-        _Confirm = "";
+        ;
 
     }
 
-    public DBcontact(int id, String command, String confirm, long time){
+    public DBcontact(int id, String command, String time, String address){
         this._id =id;
         this._Command= command;
         this._Time=time;
+        this._Address =address;
     }
 
     public long getId(){
@@ -38,22 +39,18 @@ public class DBcontact {
         this._Command=command;
     }
 
-    public long get_Time(){
+    public String get_Time(){
         return _Time;
     }
 
     public String getLocaleDatetime(){
         return String.format(Locale.getDefault(),"%tF  %<tR", new Date(_Time));
     }
-    public void Set_Time(long time){
+    public void Set_Time(String time){
         this._Time =time;
     }
 
-    public String get_Confirm(){
-        return _Confirm;
-    }
-    public void Set_Confirm(String confirm){
-        this._Confirm=confirm;
-    }
+    public String get_Address(){ return  _Address;}
+    public void Set_Address(String address){ this._Address=address;}
 
 }
