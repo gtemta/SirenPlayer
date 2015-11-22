@@ -7,9 +7,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-<<<<<<< HEAD
         android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
+        android:name="com.google.android.gms.maps.SupportMapFragment" />       android:orientation="vertical">
     <AutoCompleteTextView
         android:id="@+id/autocomplete_places"
         android:layout_width="match_parent"
@@ -28,8 +27,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginBottom="50dp" />
-=======
-        android:orientation="vertical">
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -53,6 +51,6 @@
                 android:name="com.google.android.gms.maps.SupportMapFragment" />
         </LinearLayout>
     </LinearLayout>
->>>>>>> origin/master
+
 
 </RelativeLayout>

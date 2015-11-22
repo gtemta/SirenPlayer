@@ -92,7 +92,6 @@ public class PlaceAutocompleteAdapter
         mBounds = bounds;
         mPlaceFilter = filter;
     }
-    private DBcontact searchword;
 
     /**
      * Sets the bounds for all subsequent queries.
@@ -202,8 +201,7 @@ public class PlaceAutocompleteAdapter
         if (mGoogleApiClient.isConnected()) {
 
             Log.i(TAG, "Starting autocomplete query for: " + constraint);
-            searchword = new DBcontact(0,constraint.toString(),"True",new Date().getTime());
-            DbDAO.insert(searchword);
+
             // Submit the query to the autocomplete API and retrieve a PendingResult that will
             // contain the results when the query completes.
 
