@@ -51,7 +51,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 
 /**
  * Created by jason on 15/11/13.
@@ -77,7 +76,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
     private Button sw2DB;
-    private DBcontact searchword;
 
 
     /***************************Location******************************/
@@ -354,7 +352,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String result = intent.getStringExtra("result");
             Log.d("receiver", "Got message: " + result);
             Toast.makeText(MapsActivity.this, result.toUpperCase(), Toast.LENGTH_SHORT).show();
-
             switch (result.toUpperCase()) {
                 case "CLOSE":
                     Intent pIntent = new Intent();
