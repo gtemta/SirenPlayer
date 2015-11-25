@@ -234,12 +234,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 建立地圖攝影機的位置物件
 
         CameraPosition cameraPosition = new CameraPosition(movePlace,
-                10f,
+                15f,
                 mMap.getCameraPosition().tilt,
                 mMap.getCameraPosition().bearing);
 
         // 使用動畫的效果移動地圖
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
+    }
+
+    private void moving(LatLng movePlace){
+        CameraPosition currentPlace = new CameraPosition.Builder()
+                .target(new LatLng(movePlace.latitude, movePlace.longitude))
+                .bearing(30f).tilt(65.5f).zoom(18f).build();
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
     }
 
     private void setUpMap() {
@@ -276,11 +283,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         } else {
                             currentMarker.setPosition(latLng);
                         }
-                        mNavigation(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),latLng);
+                        mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latLng);
                     } else if (markerLatLng.size() == 2) {
                         options.icon(BitmapDescriptorFactory
                                 .defaultMarker(BitmapDescriptorFactory.HUE_RED)); //終點符號顏色
-                        mNavigation(markerLatLng.get(0),latLng);
+                        mNavigation(markerLatLng.get(0), latLng);
                     }
 
                     // Add new marker to the Google Map Android API V2
@@ -559,11 +566,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
-            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime(),place.getAddress().toString());
-            dbDAO.insert(searchword);
+//            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime(),place.getAddress().toString());
+//            dbDAO.insert(searchword);
             LatLng latlng=place.getLatLng();
             Log.d(TAG,"LatLng:"+String.valueOf(latlng));
-            moveMap(latlng);
+            moving(latlng);
             addMarker(latlng, String.valueOf(place.getName())
                     , String.valueOf(place.getAddress()));
             mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latlng);
