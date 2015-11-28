@@ -52,7 +52,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
+
 
 /**
  * Created by jason on 15/11/13.
@@ -566,8 +566,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
-//            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime(),place.getAddress().toString());
-//            dbDAO.insert(searchword);
+            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime());
+            dbDAO.insert(searchword);
             LatLng latlng=place.getLatLng();
             Log.d(TAG,"LatLng:"+String.valueOf(latlng));
             moving(latlng);

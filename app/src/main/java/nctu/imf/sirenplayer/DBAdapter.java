@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -17,7 +18,8 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
      {
 
         private int resource ;
-
+         private DbDAO dbDAO;
+         private DBcontact dBcontact;
         private List<DBcontact> dBcontacts;
 
          public DBAdapter(Context context, int resource, List<DBcontact> objects) {
@@ -26,9 +28,11 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
              this.dBcontacts = objects;
          }
 
+
          @Override
          public View getView (int position, View convertView, ViewGroup parent){
              LinearLayout recordView;
+
 
              final DBcontact dBcontact = getItem(position);
              if(convertView == null){
@@ -45,10 +49,11 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
              TextView CommandView =(TextView)recordView.findViewById(R.id.record_command);
              TextView TimeView = (TextView)recordView.findViewById(R.id.record_time);
 
-             TextView AddressView = (TextView)recordView.findViewById(R.id.record_Address);
+
              CommandView.setText(dBcontact.get_Command());
              TimeView.setText(dBcontact.get_Time());
-             AddressView.setText(dBcontact.get_Address());
+
+
 
              return recordView;
          }

@@ -25,20 +25,11 @@
         android:layout_below="@+id/record_command"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textColor="#66BAB7"
+        android:textColor="#66baa2"
         android:textSize="15sp"
-        android:visibility="invisible" />
+         />
 
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Address"
-        android:id="@+id/record_Address"
-        android:layout_below="@+id/record_command"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
 
 
 </RelativeLayout>

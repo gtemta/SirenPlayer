@@ -16,5 +16,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/db_listView"
         android:layout_gravity="center_horizontal"
-        android:background="#563F2E"/>
+        android:background="#535953"
+        android:clickable="true"
+        />
+
 </LinearLayout>
