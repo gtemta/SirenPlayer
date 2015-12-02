@@ -68,6 +68,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<LatLng> markerLatLng;
     private static boolean isFirstStart=true;
     private static boolean isNavigating=false;
+    private static boolean isFocusAutocompleteView=false;
 
     //=====location====
     // Google API用戶端物件
@@ -132,10 +133,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        final FloatingActionButton startSpeech = (FloatingActionButton) findViewById(R.id.start_speech);
+        startSpeech.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(MapsActivity.this, MainService.class);
+//                intent.setAction("nctu.imf.sirenplayer.MainService");
+                intent.setPackage(getPackageName());
+                startService(intent);
+                startSpeech.setEnabled(false);
+                startSpeech.setVisibility(View.GONE);
             }
         });
         dbDAO= new DbDAO(getApplicationContext());
@@ -277,11 +285,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
                 public void onMapClick(LatLng latLng) {
-                    if (markerLatLng.size() > 1) {
-                        markerLatLng.clear();
-                        mMap.clear();
-                    }
-
                     // Adding new item to the ArrayList
                     markerLatLng.add(latLng);
 
@@ -348,16 +351,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onStart() {
         super.onStart();
-        if (currentLocation!=null){
-            moveMap(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
-        }else{
-            moveMap(TAIPEI101);
-        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (currentLocation!=null){
+            moveMap(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
+        }else{
+            moveMap(TAIPEI101);
+        }
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("my-event"));
         //setUpMapIfNeeded();
@@ -401,21 +404,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             String result = intent.getStringExtra("result");
             Log.d("receiver", "Got message: " + result);
             Toast.makeText(MapsActivity.this, result.toUpperCase(), Toast.LENGTH_SHORT).show();
-            switch (result.toUpperCase()) {
-                case "CLOSE":
-                    Intent pIntent = new Intent();
-                    pIntent.setAction("nctu.imf.sirenplayer.MainService");
-                    pIntent.setPackage(getPackageName());
-                    stopService(pIntent);
-                    MapsActivity.this.finish();
-                    break;
-                case "Delete":
-                    mAutocompleteView.setText("");
-                    break;
-                case "CLEAR":
-                    mMap.clear();
-                    break;
-            }
+            CaseSelect(result);
         }
     };
 
@@ -596,17 +585,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
-            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime());
-            dbDAO.insert(searchword);
+//            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime());
+//            dbDAO.insert(searchword);
             LatLng latlng=place.getLatLng();
             Log.d(TAG, "LatLng:" + String.valueOf(latlng));
-//            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-//            builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
-//            builder.include(latlng);
-//            LatLngBounds bounds=builder.build();
-//            int padding = 0; // offset from edges of the map in pixels
-//            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds,padding));
-            isNavigating=true;
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+            builder.include(latlng);
+            LatLngBounds bounds=builder.build();
+            int padding = 50; // offset from edges of the map in pixels
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
             addMarker(latlng, String.valueOf(place.getName())
                     , String.valueOf(place.getAddress()));
             mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latlng);
@@ -631,4 +619,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    public void CaseSelect(String caseSelect){
+        if (isFocusAutocompleteView){
+            mAutocompleteView.setText(caseSelect);
+            isFocusAutocompleteView=false;
+        }
+        switch (caseSelect){
+            case "結束":
+            case "關閉":
+            case "離開":
+                Intent intent = new Intent();
+                intent.setClass(MapsActivity.this,MainService.class);
+//                intent.setAction("nctu.imf.sirenplayer.MainService");
+                intent.setPackage(getPackageName());
+                stopService(intent);
+                finish();
+                break;
+            case "導航":
+            case "開始導航":
+                isNavigating=true;
+                break;
+            case "停止導航":
+            case "終止導航":
+            case "結束導航":
+                isNavigating=false;
+                break;
+            case "清除地圖":
+                mMap.clear();
+                break;
+            case "搜尋":
+            case "尋找":
+                isFocusAutocompleteView=true;
+                break;
+            case "清除":
+                mAutocompleteView.setText("");
+                break;
+            case "放大":
+                if (mMap.getCameraPosition().zoom>=mMap.getMaxZoomLevel())break;
+                mMap.animateCamera(CameraUpdateFactory.zoomTo(mMap.getCameraPosition().zoom + 1));
+                break;
+            case "縮小":
+                if (mMap.getCameraPosition().zoom<=mMap.getMinZoomLevel())break;
+                mMap.animateCamera( CameraUpdateFactory.zoomTo( mMap.getCameraPosition().zoom - 1 ) );
+                break;
+        }
+    }
 }

@@ -21,8 +21,6 @@ public class MainService extends Service{
     private SpeechRecognizer speechRecognizer;
     private Intent intent;
     private listener myListener;
-    private Handler handler;
-    private Runnable runnable;
 
 
     @Override
@@ -33,16 +31,9 @@ public class MainService extends Service{
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-
-        handler=new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainService.this);
-                speechRecognizer.setRecognitionListener(myListener);
-                speechRecognizer.startListening(intent);
-            }
-        }, 5000);
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainService.this);
+        speechRecognizer.setRecognitionListener(myListener);
+        speechRecognizer.startListening(intent);
 
     }
 
@@ -57,7 +48,7 @@ public class MainService extends Service{
         speechRecognizer.stopListening();
         speechRecognizer.cancel();
         speechRecognizer.destroy();
-        handler.removeCallbacks(runnable);
+        speechRecognizer=null;
         stopSelf();
         super.onDestroy();
     }
@@ -67,15 +58,9 @@ public class MainService extends Service{
         speechRecognizer.stopListening();
         speechRecognizer.cancel();
         speechRecognizer.destroy();
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainService.this);
-                speechRecognizer.setRecognitionListener(new listener());
-                speechRecognizer.startListening(intent);
-            }
-        };
-        handler.postDelayed(runnable,1000);
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainService.this);
+        speechRecognizer.setRecognitionListener(new listener());
+        speechRecognizer.startListening(intent);
     }
 
     class listener implements RecognitionListener {
@@ -141,10 +126,14 @@ public class MainService extends Service{
 
         @Override
         public void onResults(Bundle results) {
-            Log.i(TAG,"onResults");
+            Log.i(TAG,"onResults:");
             ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String str= (String) data.get(0);
             sendResult(str);
+            Log.i(TAG, "What:"+str);
+            if (str.toUpperCase()=="KILL"){
+                MainService.this.stopSelf();
+            }
             restartSpeechRecognizer();
         }
 

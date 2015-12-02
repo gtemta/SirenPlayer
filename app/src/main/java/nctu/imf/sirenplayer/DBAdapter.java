@@ -58,11 +58,11 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
 
              return recordView;
          }
-         @Override
-         public boolean onCreateOptionsMenu(Menu menu) {
-             menu.add(0, Menu.FIRST, 0, "add item");
-             return super.onCreateOptionsMenu(menu);
-         }
+//         @Override
+//         public boolean onCreateOptionsMenu(Menu menu) {
+//             menu.add(0, Menu.FIRST, 0, "add item");
+//             return super.onCreateOptionsMenu(menu);
+//         }
 
 
 

@@ -13,7 +13,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right|bottom"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="60dp"
         android:src="@android:drawable/ic_dialog_dialer" />
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/start_speech"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:layout_marginBottom="0dp"
+        android:src="@android:drawable/btn_star" />
 
 </android.support.design.widget.CoordinatorLayout>
