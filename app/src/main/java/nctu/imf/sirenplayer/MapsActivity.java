@@ -18,7 +18,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.Toast;
 import android.support.design.widget.FloatingActionButton;
 
@@ -33,6 +32,7 @@ import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,7 +52,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 
 /**
  * Created by jason on 15/11/13.
@@ -67,6 +66,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static GoogleMap mMap;
     ArrayList<LatLng> markerLatLng;
     private static boolean isFirstStart=true;
+    private static boolean isNavigating=false;
 
     //=====location====
     // Google API用戶端物件
@@ -139,7 +139,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         markerLatLng=new ArrayList<>();
         mAutocompleteView = (AutoCompleteTextView)findViewById(R.id.autocomplete_places);
         mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
-        mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUNDS_GREATER_SYDNEY,null);
+        mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUND_TAIWAN,null);
         mAutocompleteView.setAdapter(mAdapter);
         sw2DB =(FloatingActionButton)findViewById(R.id.fab);
         sw2DB.setOnClickListener(new View.OnClickListener() {
@@ -202,30 +202,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // LocationListener
     @Override
     public void onLocationChanged(Location location) {
-        // 位置改變
-        // Location參數是目前的位置
-        currentLocation = location;
-        LatLng latLng = new LatLng(
-                location.getLatitude(), location.getLongitude());
-
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        if(isNavigating){
+            if(currentLocation!=null){
+                double deltaLat = location.getLatitude()-currentLocation.getLatitude();  //y +north
+                double deltaLon = location.getLongitude()-currentLocation.getLongitude();  //x +east
+                float ctrlBearing = (float)Math.atan2(deltaLat,deltaLon);
+                Log.d("Bearing",ctrlBearing+" degrees");
+                moving(latLng,ctrlBearing,65.5f,18f);
+            }
+        }
         // 移動地圖到目前的位置
         if(isFirstStart){
             moveMap(latLng);
             isFirstStart=false;
         }
+        // 位置改變
+        // Location參數是目前的位置
+        currentLocation = location;
     }
-
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         if (mMap == null) {
             mMap = googleMap;
         }
+        moveMap(taiwan);
 
         // Add a marker in Sydney and move the camera
 //        mMap.addMarker(new MarkerOptions().position(taiwan).title("Taiwan"));
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(taiwan));
-
         setUpMap();
     }
 
@@ -239,14 +244,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.getCameraPosition().bearing);
 
         // 使用動畫的效果移動地圖
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
-    private void moving(LatLng movePlace){
+    private void moving(LatLng movePlace,float moveBearing,float moveTilt,float moveZoom){
         CameraPosition currentPlace = new CameraPosition.Builder()
-                .target(new LatLng(movePlace.latitude, movePlace.longitude))
-                .bearing(30f).tilt(65.5f).zoom(18f).build();
-        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
+                .target(movePlace)
+                .bearing(moveBearing)//30f
+                .tilt(moveTilt)//65.6f
+                .zoom(moveZoom)//18f
+                .build();
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
     }
 
     private void setUpMap() {
@@ -503,7 +511,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private AutoCompleteTextView mAutocompleteView;
 
-    private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
+    private static final LatLngBounds BOUND_TAIWAN = new LatLngBounds(
             new LatLng(22, 120), new LatLng(25.3, 122));
 
     /**
@@ -569,8 +577,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime(),place.getAddress().toString());
 //            dbDAO.insert(searchword);
             LatLng latlng=place.getLatLng();
-            Log.d(TAG,"LatLng:"+String.valueOf(latlng));
-            moving(latlng);
+            Log.d(TAG, "LatLng:" + String.valueOf(latlng));
+//            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+//            builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+//            builder.include(latlng);
+//            LatLngBounds bounds=builder.build();
+//            int padding = 0; // offset from edges of the map in pixels
+//            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds,padding));
+            isNavigating=true;
             addMarker(latlng, String.valueOf(place.getName())
                     , String.valueOf(place.getAddress()));
             mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latlng);
