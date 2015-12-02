@@ -84,7 +84,7 @@ public class DBActivity extends Activity{
             @Override
             public boolean onLongClick(View v) {
                 dbDAO.delete(dbcontact.getId());
-                dbAdapter.remove();
+                dbAdapter.remove(dbcontact);
                 Log.d(TAG,"DBact-delitem   "+dbcontact.getId());
                 return false;
             }

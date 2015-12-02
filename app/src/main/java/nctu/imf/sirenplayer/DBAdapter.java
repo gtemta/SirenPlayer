@@ -61,7 +61,7 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
          @Override
          public boolean onCreateOptionsMenu(Menu menu) {
              menu.add(0, Menu.FIRST, 0, "add item");
-            // return super.onCreateOptionsMenu(menu);
+             return super.onCreateOptionsMenu(menu);
          }
 
 
