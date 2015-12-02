@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 
@@ -41,7 +42,6 @@ public class DBActivity extends Activity{
        Intent intent = getIntent();
           dbcontact= new DBcontact();
 
-
         Log.i(TAG, "DB Example join");
 
 
@@ -50,7 +50,7 @@ public class DBActivity extends Activity{
         Log.i(TAG, "DB setup ");
 
         if (dbDAO.getCount() == 0){
-            dbDAO.sample();
+            //dbDAO.sample();
         }
         toMap =(Button)findViewById(R.id.back2map);
         toMap.setOnClickListener(new View.OnClickListener() {
@@ -59,6 +59,7 @@ public class DBActivity extends Activity{
                 Intent intent =new Intent();
                 intent.setClass(DBActivity.this,MapsActivity.class);
                 startActivity(intent);
+                dbDAO.close();
                DBActivity.this.finish();
             }
         });
@@ -67,7 +68,17 @@ public class DBActivity extends Activity{
         list_records=(ListView)findViewById(R.id.db_listView);
         list_records.setAdapter(dbAdapter);
 
-        Log.i(TAG, "Get records");
+        Log.i(TAG, "Get records  " + dbDAO.getCount() );
+        list_records.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                dbDAO.delete(dbcontact.getId());
+                dbAdapter.remove();
+                Log.d(TAG,"DBact-delitem   "+dbcontact.getId());
+                return false;
+            }
+        });
+
     }
 
 
@@ -81,16 +92,10 @@ public class DBActivity extends Activity{
 
             String Command =dbcontact.get_Command();
             String Time =dbcontact.get_Time();
-            String Address= dbcontact.get_Address();
-
-
-
             Intent result = getIntent();
 
             result.putExtra("Command",Command );
             result.putExtra("Time",Time);
-            result.putExtra("Address",Address);
-
 
             setResult(Activity.RESULT_OK, result);
                 finish();

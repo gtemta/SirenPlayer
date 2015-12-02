@@ -10,19 +10,19 @@ public class DBcontact {
     long _id;
     String _Command;
     String _Time;
-    String _Address;
+
 
     public DBcontact(){
         _Command= "";
-        ;
+
 
     }
 
-    public DBcontact(int id, String command, String time, String address){
+    public DBcontact(int id, String command, String time){
         this._id =id;
         this._Command= command;
         this._Time=time;
-        this._Address =address;
+
     }
 
     public long getId(){
@@ -50,7 +50,6 @@ public class DBcontact {
         this._Time =time;
     }
 
-    public String get_Address(){ return  _Address;}
-    public void Set_Address(String address){ this._Address=address;}
+
 
 }

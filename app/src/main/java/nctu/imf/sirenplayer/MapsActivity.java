@@ -574,8 +574,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
-//            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime(),place.getAddress().toString());
-//            dbDAO.insert(searchword);
+            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime());
+            dbDAO.insert(searchword);
             LatLng latlng=place.getLatLng();
             Log.d(TAG, "LatLng:" + String.valueOf(latlng));
 //            LatLngBounds.Builder builder = new LatLngBounds.Builder();
