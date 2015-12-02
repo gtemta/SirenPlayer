@@ -69,6 +69,7 @@ public class DBActivity extends Activity{
         list_records.setAdapter(dbAdapter);
 
         Log.i(TAG, "Get records  " + dbDAO.getCount() );
+
         list_records.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -78,6 +79,17 @@ public class DBActivity extends Activity{
                 return false;
             }
         });
+
+        list_records.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                dbDAO.delete(dbcontact.getId());
+                dbAdapter.remove();
+                Log.d(TAG,"DBact-delitem   "+dbcontact.getId());
+                return false;
+            }
+        });
+
 
     }
 
