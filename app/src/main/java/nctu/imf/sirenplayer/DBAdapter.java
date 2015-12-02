@@ -2,6 +2,7 @@ package nctu.imf.sirenplayer;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -57,6 +58,12 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
 
              return recordView;
          }
+         @Override
+         public boolean onCreateOptionsMenu(Menu menu) {
+             menu.add(0, Menu.FIRST, 0, "add item");
+             return super.onCreateOptionsMenu(menu);
+         }
+
 
 
      }
