@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -74,7 +75,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // Location請求物件
     private LocationRequest locationRequest;
     // 記錄目前最新的位置
-    private Location currentLocation;
+    private static Location currentLocation;
+    private LocationManager locationManager;
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
     private FloatingActionButton sw2DB;
@@ -83,7 +85,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     /***************************Location******************************/
-    LatLng taiwan = new LatLng(25.033408, 121.564099);
+    final LatLng taiwan = new LatLng(25.033408, 121.564099);
+    /**台北101*/
+    final LatLng TAIPEI101 = new LatLng(25.033611, 121.565000);
+    /**台北火車站*/
+    final LatLng TAIPEI_TRAIN_STATION = new LatLng(25.047924, 121.517081);
+    /**國立台灣博物館*/
+    final LatLng NATIONAL_TAIWAN_MUSEUM = new LatLng(25.042902, 121.515030);
+    /**墾丁*/
+    final LatLng KENTING = new LatLng(21.946567, 120.798713);
+    /**日月潭*/
+    final LatLng ZINTUN = new LatLng(23.851676, 120.902008);
 
     /***************************Location******************************/
     // 建立Google API用戶端物件
@@ -323,6 +335,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .snippet(snippet);
 
         mMap.addMarker(markerOptions);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (currentLocation!=null){
+            moveMap(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
+        }else{
+            moveMap(TAIPEI101);
+        }
     }
 
     @Override
