@@ -1,8 +1,10 @@
 package nctu.imf.sirenplayer;
 
 import android.content.Context;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -33,19 +35,26 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
          @Override
          public View getView (int position, View convertView, ViewGroup parent){
              LinearLayout recordView;
-
-
              final DBcontact dBcontact = getItem(position);
+
              if(convertView == null){
 
                  recordView = new LinearLayout(getContext());
                  String inflater =Context.LAYOUT_INFLATER_SERVICE;
                  LayoutInflater li =(LayoutInflater)getContext().getSystemService(inflater);
-                 li.inflate(resource,recordView,true);
+                 li.inflate(resource, recordView, true);
+
              }
              else{
                  recordView = (LinearLayout)convertView;
              }
+            recordView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+
+                    return false;
+                }
+            });
 
              TextView CommandView =(TextView)recordView.findViewById(R.id.record_command);
              TextView TimeView = (TextView)recordView.findViewById(R.id.record_time);
@@ -58,11 +67,7 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
 
              return recordView;
          }
-         @Override
-         public boolean onCreateOptionsMenu(Menu menu) {
-             menu.add(0, Menu.FIRST, 0, "add item");
-             return super.onCreateOptionsMenu(menu);
-         }
+
 
 
 
