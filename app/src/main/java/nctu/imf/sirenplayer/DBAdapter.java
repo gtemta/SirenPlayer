@@ -66,9 +66,6 @@ public class DBAdapter extends ArrayAdapter<DBcontact>
 
 
              return recordView;
-         }
-
-
 
 
      }
