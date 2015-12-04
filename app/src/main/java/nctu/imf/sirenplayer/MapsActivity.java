@@ -81,6 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
     private FloatingActionButton sw2DB;
+    private FloatingActionButton startSpeech;
     private DbDAO dbDAO;
     private DBcontact searchword;
 
@@ -98,7 +99,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**日月潭*/
     final LatLng ZINTUN = new LatLng(23.851676, 120.902008);
 
-    /***************************Location******************************/
+    /***************************Traffic******************************/
+
     // 建立Google API用戶端物件
     private synchronized void configGoogleApiClient() {
         // Construct a GoogleApiClient for the {@link Places#GEO_DATA_API} using AutoManage
@@ -133,7 +135,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final FloatingActionButton startSpeech = (FloatingActionButton) findViewById(R.id.start_speech);
+        startSpeech = (FloatingActionButton) findViewById(R.id.start_speech);
         startSpeech.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -260,7 +262,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         CameraPosition cameraPosition = new CameraPosition(movePlace,
                 15f,
-                mMap.getCameraPosition().tilt,
+                0f,
                 mMap.getCameraPosition().bearing);
 
         // 使用動畫的效果移動地圖
@@ -411,25 +413,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /*****************發送url至google取得路徑方法*******************/
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
-        // Origin of route
-        String str_origin = "origin=" + origin.latitude + ","
-                + origin.longitude;
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
 
-        // Destination of route
         String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
 
-        // Sensor enabled
-        String sensor = "sensor=false";
+        String parameters = str_origin + "&" + str_dest ;
 
-        // Building the parameters to the web service
-        String parameters = str_origin + "&" + str_dest + "&" + sensor;
-
-        // Output format
         String output = "json";
 
-        // Building the url to the web service
-        String url = "https://maps.googleapis.com/maps/api/directions/"
-                + output + "?" + parameters;
+        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
 
         return url;
     }
@@ -442,13 +434,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         try {
             URL url = new URL(strUrl);
 
-            // Creating an http connection to communicate with url
             urlConnection = (HttpURLConnection) url.openConnection();
 
-            // Connecting to url
             urlConnection.connect();
 
-            // Reading data from url
             iStream = urlConnection.getInputStream();
 
             BufferedReader br = new BufferedReader(new InputStreamReader(
@@ -474,18 +463,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return data;
     }
 
-    // Fetches data from url passed
     private class DownloadTask extends AsyncTask<String, Void, String> {
-
-        // Downloading data in non-ui thread
         @Override
         protected String doInBackground(String... url) {
 
-            // For storing data from web service
             String data = "";
 
             try {
-                // Fetching the data from web service
                 data = downloadUrl(url[0]);
             } catch (Exception e) {
                 Log.d("Background Task", e.toString());
@@ -493,15 +477,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return data;
         }
 
-        // Executes in UI thread, after the execution of
-        // doInBackground()
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
             ParserTask parserTask = new ParserTask();
 
-            // Invokes the thread for parsing the JSON data
             parserTask.execute(result);
 
         }
@@ -625,14 +606,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             isFocusAutocompleteView=false;
         }
         switch (caseSelect){
-            case "結束":
-            case "關閉":
-            case "離開":
+            case "結束語音":
+            case "關閉語音":
+            case "離開語音":
+            case "停止語音":
+            case "暫停語音":
                 Intent intent = new Intent();
-                intent.setClass(MapsActivity.this,MainService.class);
+                intent.setClass(MapsActivity.this, MainService.class);
 //                intent.setAction("nctu.imf.sirenplayer.MainService");
                 intent.setPackage(getPackageName());
                 stopService(intent);
+                startSpeech.setEnabled(true);
+                startSpeech.setVisibility(View.VISIBLE);
+                break;
+            case "結束":
+            case "關閉":
+            case "離開":
                 finish();
                 break;
             case "導航":
@@ -640,16 +629,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 isNavigating=true;
                 break;
             case "停止導航":
+            case "取消導航":
             case "終止導航":
             case "結束導航":
                 isNavigating=false;
+                moveMap(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
+                mAutocompleteView.setText("");
                 break;
             case "清除地圖":
                 mMap.clear();
                 break;
+            case "重新搜尋":
+                mAutocompleteView.setText("");
             case "搜尋":
             case "尋找":
                 isFocusAutocompleteView=true;
+                break;
+            case "經由":
                 break;
             case "清除":
                 mAutocompleteView.setText("");
