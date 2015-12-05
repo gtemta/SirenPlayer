@@ -148,7 +148,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startSpeech.setVisibility(View.GONE);
             }
         });
+
         dbDAO= new DbDAO(getApplicationContext());
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -566,8 +568,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
-//            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime());
-//            dbDAO.insert(searchword);
+//==============intoDB
+            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.get_Time());
+            dbDAO.insert(searchword);
+
+            Log.d(TAG, "Insert to DB"+ place.getName().toString());
             LatLng latlng=place.getLatLng();
             Log.d(TAG, "LatLng:" + String.valueOf(latlng));
             LatLngBounds.Builder builder = new LatLngBounds.Builder();

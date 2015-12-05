@@ -1,9 +1,13 @@
 package nctu.imf.sirenplayer;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -29,7 +33,9 @@ public class DBActivity extends Activity{
     private List<DBcontact> records;
     // 選單項目物件
     private ListView list_records;
-    private MenuItem add_record,search_record,revert_record,delete_record;
+    private MenuItem add_record,search_record,delete_record;
+    // 已選擇項目數量
+    private int selectedCount = 0;
     private Button toMap;
     @Override
     protected void  onCreate(Bundle savedInstanceState) {
@@ -38,9 +44,9 @@ public class DBActivity extends Activity{
 
 
         DBactstart();
-        processViews();
-       Intent intent = getIntent();
-          dbcontact= new DBcontact();
+        processControl();
+        Intent intent = getIntent();
+        dbcontact= new DBcontact();
 
         Log.i(TAG, "DB Example join");
 
@@ -67,47 +73,69 @@ public class DBActivity extends Activity{
         dbAdapter =new DBAdapter(this,R.layout.db_item,records);
         list_records=(ListView)findViewById(R.id.db_listView);
         list_records.setAdapter(dbAdapter);
-
-        Log.i(TAG, "Get records  " + dbDAO.getCount() );
-
-        list_records.setOnLongClickListener(new View.OnLongClickListener() {
+        Log.i(TAG, "Get records  " + dbDAO.getCount());
+        list_records.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onLongClick(View v) {
-                dbDAO.delete(dbcontact.getId());
-                dbAdapter.remove(dbcontact);
-                Log.d(TAG,"DBact-delitem   "+dbcontact.getId());
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                new AlertDialog.Builder(DBActivity.this)
+                        .setTitle("確認刪除?")
+                        .setMessage("刪除第" + (position+1)+"個紀錄?" )
+                        .setPositiveButton("是", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Log.i(TAG, "Delete" + position );
+                                dbAdapter.removeItem(position);
+                                dbDAO.delete(dbcontact.getId());
+                                dbAdapter.notifyDataSetChanged();
+                            }
+                        }).setNegativeButton("否", null).show();
                 return false;
             }
         });
 
-        list_records.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                dbDAO.delete(dbcontact.getId());
-                dbAdapter.remove(dbcontact);
-                Log.d(TAG,"DBact-delitem   "+dbcontact.getId());
-                return false;
-            }
-        });
 
 
     }
 
 
-    private void processViews(){
+    private void processControl(){
         //onSubmit();
+        AdapterView.OnItemClickListener itemClickListener =new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                DBcontact dBcontact = dbAdapter.getItem(position);
+
+                if (selectedCount>0){
+
+
+                }
+            }
+        };
 
     }
 
+private void processMenu(DBcontact dBcontact){
+    if (dbcontact != null){
+        dbcontact.setSelected(!dbcontact.isSelected());
+        if (dbcontact.isSelected()){
+            selectedCount++;
+        }
+        else {
+            selectedCount--;
+        }
+    }
+    add_record.setVisible(selectedCount == 0);
+    search_record.setVisible(selectedCount == 0);
+    delete_record.setVisible(selectedCount>0);
+}
 
     public void onSubmit(){
-
             String Command =dbcontact.get_Command();
             String Time =dbcontact.get_Time();
             Intent result = getIntent();
 
             result.putExtra("Command",Command );
-            result.putExtra("Time",Time);
+            result.putExtra("Time", Time);
 
             setResult(Activity.RESULT_OK, result);
                 finish();
@@ -120,6 +148,7 @@ public class DBActivity extends Activity{
 
         dBcontact = dbDAO.insert(dBcontact);
         records.add(dBcontact);
+        dbAdapter.notifyDataSetChanged();
     }
 
 
@@ -127,7 +156,28 @@ public class DBActivity extends Activity{
         Log.i(TAG, "DBactivity Start Up");
     }
 
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu){
+//        menu.add(0, Menu.FIRST, 0, "delete item");
+//        return super.onCreateOptionsMenu(menu);
+//    }
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item){
+//        switch (item.getItemId()){
+//            case Menu.FIRST :
+////                dbAdapter.removeItem();
+//                dbAdapter.notifyDataSetChanged();
+//                break;
+//
+//
+//        }
+//        return  super.onOptionsItemSelected(item);
+//    }
+
+
+
+
+}
 
 
 

@@ -24,7 +24,7 @@ public class MyDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS users");
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS");
         onCreate(sqLiteDatabase);
     }
     public MyDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory,

@@ -10,6 +10,7 @@ public class DBcontact {
     long _id;
     String _Command;
     String _Time;
+    boolean selected;
 
 
     public DBcontact(){
@@ -48,6 +49,12 @@ public class DBcontact {
     }
     public void Set_Time(String time){
         this._Time =time;
+    }
+    public boolean isSelected(){
+        return selected;
+    }
+    public  void setSelected(boolean selected){
+        this.selected =selected;
     }
 
 

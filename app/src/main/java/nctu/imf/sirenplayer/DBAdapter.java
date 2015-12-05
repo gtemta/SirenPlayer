@@ -17,55 +17,44 @@ import java.util.List;
 /**
  * Created by Pika on 2015/10/3.
  */
-public class DBAdapter extends ArrayAdapter<DBcontact>
-     {
+public class DBAdapter extends ArrayAdapter<DBcontact> {
 
-        private int resource ;
-         private DbDAO dbDAO;
-         private DBcontact dBcontact;
-        private List<DBcontact> dBcontacts;
-
-         public DBAdapter(Context context, int resource, List<DBcontact> objects) {
-             super(context, resource, objects);
-             this.resource = resource;
-             this.dBcontacts = objects;
-         }
+    private int resource;
+    private DbDAO dbDAO;
+    private DBcontact dBcontact;
+    private List<DBcontact> dBcontacts;
 
 
-         @Override
-         public View getView (int position, View convertView, ViewGroup parent){
-             LinearLayout recordView;
-             final DBcontact dBcontact = getItem(position);
+    public DBAdapter(Context context, int resource, List<DBcontact> objects) {
+        super(context, resource, objects);
+        this.resource = resource;
+        this.dBcontacts = objects;
+    }
 
-             if(convertView == null){
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        LinearLayout recordView;
 
-                 recordView = new LinearLayout(getContext());
-                 String inflater =Context.LAYOUT_INFLATER_SERVICE;
-                 LayoutInflater li =(LayoutInflater)getContext().getSystemService(inflater);
-                 li.inflate(resource, recordView, true);
+        final DBcontact dBcontact = getItem(position);
 
-             }
-             else{
-                 recordView = (LinearLayout)convertView;
-             }
-            recordView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
+        if (convertView == null) {
+            recordView = new LinearLayout(getContext());
+            String inflater = Context.LAYOUT_INFLATER_SERVICE;
+            LayoutInflater li = (LayoutInflater) getContext().getSystemService(inflater);
+            li.inflate(resource, recordView, true);
+            TextView CommandView = (TextView) recordView.findViewById(R.id.record_command);
+            TextView TimeView = (TextView) recordView.findViewById(R.id.record_time);
+            CommandView.setText(dBcontact.get_Command());
+            TimeView.setText(dBcontact.get_Time());
 
-                    return false;
-                }
-            });
+        } else {
+            recordView = (LinearLayout) convertView;
+        }
+            return recordView;
+    }
 
-             TextView CommandView =(TextView)recordView.findViewById(R.id.record_command);
-             TextView TimeView = (TextView)recordView.findViewById(R.id.record_time);
+    public void removeItem(long index){
+        dBcontacts.remove(index);
+    }
 
-
-             CommandView.setText(dBcontact.get_Command());
-             TimeView.setText(dBcontact.get_Time());
-
-
-
-             return recordView;
-
-
-     }
+}

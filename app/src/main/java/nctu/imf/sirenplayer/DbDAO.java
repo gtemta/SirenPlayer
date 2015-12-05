@@ -54,7 +54,7 @@ public class DbDAO {
 
         ContentValues cv = new ContentValues();
         cv.put(COMMAND,dBcontact.get_Command());
-        cv.put(TIME,dBcontact.getLocaleDatetime());
+        cv.put(TIME,dBcontact.get_Time());
 
         long id = db.insert(TABLE_NAME, null, cv);
          dBcontact.Setid(id);
@@ -68,19 +68,15 @@ public class DbDAO {
         cv.put(COMMAND,item.get_Command());
         cv.put(TIME,item.getLocaleDatetime());
 
-
         String where = KEY_ID + "=" + item.getId();
 
-
         return db.update(TABLE_NAME, cv, where, null) > 0;
-
     }
 
 
     public boolean delete(long id){
 
         String where = KEY_ID + "=" + id;
-
         return db.delete(TABLE_NAME, where, null) > 0;
     }
 
@@ -106,7 +102,6 @@ public class DbDAO {
         result.Setid(cursor.getLong(0));
         result.Set_Command(cursor.getString(1));
         result.Set_Time(cursor.getString(3));
-
 
 
         return result;
