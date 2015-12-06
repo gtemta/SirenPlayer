@@ -1,5 +1,7 @@
 package nctu.imf.sirenplayer;
 
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks;
 import android.content.Context;
@@ -13,10 +15,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.NotificationCompat;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Toast;
@@ -71,6 +75,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static boolean isNavigating=false;
     private static boolean isFocusAutocompleteView=false;
 
+
     //=====location====
     // Google API用戶端物件
     private GoogleApiClient googleApiClient;
@@ -88,6 +93,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<DBcontact> records;
     private DBAdapter dbAdapter;
 
+
+
     /***************************Location******************************/
     final LatLng taiwan = new LatLng(25.033408, 121.564099);
     /**台北101*/
@@ -100,6 +107,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     final LatLng KENTING = new LatLng(21.946567, 120.798713);
     /**日月潭*/
     final LatLng ZINTUN = new LatLng(23.851676, 120.902008);
+    final LatLng rec_Location = new LatLng(24.7855859,120.9986516);
+
 
     /***************************Traffic******************************/
 
@@ -137,6 +146,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+//        NotificationManager notificationManager =(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+
         startSpeech = (FloatingActionButton) findViewById(R.id.start_speech);
         startSpeech.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,6 +159,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startService(intent);
                 startSpeech.setEnabled(false);
                 startSpeech.setVisibility(View.GONE);
+                NotiCreate();
+
+
             }
         });
 
@@ -179,8 +193,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
+        Intent Rintent =getIntent();
+        Bundle ext =Rintent.getExtras();
+        if(ext!=null) {
+        Bundle ReceiveSide =this.getIntent().getExtras();
+            Double Rlatitude = ReceiveSide.getDouble("Record_Latitude");
+            Double Rlongitude =ReceiveSide.getDouble("Recrord_Longitude");
+            LatLng rec_Location = new LatLng(Rlatitude,Rlongitude);
+        }
     }
 
+    private void NotiCreate(){
+        NotificationCompat.Builder builder =new NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.drawable.map_icon)
+                .setContentTitle("SirenPlayer執行中...")
+                .setContentText("語音執行中");
+        //**********補上完整
+    }
 
     // ConnectionCallbacks
     @Override
@@ -366,7 +395,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (currentLocation!=null){
             moveMap(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
         }else{
-            moveMap(TAIPEI101);
+            moveMap(rec_Location);
         }
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("my-event"));
@@ -572,16 +601,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
 //==============intoDB
-            searchword = new  DBcontact((dbDAO.getCount()+1),place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime());
 
-            dbDAO.insert(searchword);
-            Log.d(TAG, "# data in DB :" + dbDAO.getCount());
-            Log.d(TAG, "New Data ID"+searchword.getId() );
-
-            Log.d(TAG, "Insert to DB "+ place.getName().toString());
             LatLng latlng=place.getLatLng();
             Log.d(TAG, "# data in DB after insert:" + dbDAO.getCount());
             Log.d(TAG, "LatLng:" + String.valueOf(latlng));
+            searchword = new  DBcontact((dbDAO.getCount()+1)
+                    ,place.getName().toString()
+                    ,dbDAO.dBcontact.getLocaleDatetime()
+                    ,latlng.latitude
+                    ,latlng.longitude
+            );
+            dbDAO.insert(searchword);
+            Log.d(TAG, "# data in DB :" + dbDAO.getCount());
+            Log.d(TAG, "New Data ID"+searchword.getId() );
+            Log.d(TAG, "Insert to DB "+ place.getName().toString());
+            Log.d(TAG, "Lat " + latlng.latitude);
+            Log.d(TAG, "Lon " + latlng.longitude);
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
             builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
             builder.include(latlng);
@@ -591,6 +626,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             addMarker(latlng, String.valueOf(place.getName())
                     , String.valueOf(place.getAddress()));
             mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latlng);
+
+            //Close Keyboard
+            InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+           imm.hideSoftInputFromWindow(MapsActivity.this.getCurrentFocus().getWindowToken(),InputMethodManager.HIDE_NOT_ALWAYS);
 
 
             // Display the third party attributions if set.
@@ -654,6 +693,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "重新搜尋":
                 mAutocompleteView.setText("");
             case "搜尋":
+
             case "尋找":
                 isFocusAutocompleteView=true;
                 break;
@@ -670,6 +710,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (mMap.getCameraPosition().zoom<=mMap.getMinZoomLevel())break;
                 mMap.animateCamera( CameraUpdateFactory.zoomTo( mMap.getCameraPosition().zoom - 1 ) );
                 break;
+
+
         }
     }
 }

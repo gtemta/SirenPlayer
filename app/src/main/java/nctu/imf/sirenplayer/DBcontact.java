@@ -12,7 +12,8 @@ public class DBcontact {
     long _id;
     String _Command;
     String _Time ;
-    boolean selected;
+    double _Lat;
+    double _Lng;
 
 
 
@@ -22,10 +23,12 @@ public class DBcontact {
 
     }
 
-    public DBcontact(int id, String command, String time){
+    public DBcontact(int id, String command, String time,double lat,double lng ){
         this._id =id;
         this._Command= command;
         this._Time=time;
+        this._Lat=lat;
+        this._Lng=lng;
 
     }
 
@@ -57,6 +60,18 @@ public class DBcontact {
     public void Set_Time(String time){
 
           this._Time =time;
+    }
+    public double get_Lat(){
+        return  _Lat;
+    }
+    public void set_Lat(double lat){
+        this._Lat=lat;
+    }
+    public double get_Lng(){
+        return _Lng;
+    }
+    public void set_Lng(double lng){
+        this._Lng=lng;
     }
 //    public boolean isSelected(){
 //        return selected;

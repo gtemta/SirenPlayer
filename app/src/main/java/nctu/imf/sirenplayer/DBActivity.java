@@ -68,19 +68,35 @@ public class DBActivity extends Activity{
         list_records=(ListView)findViewById(R.id.db_listView);
         list_records.setAdapter(dbAdapter);
         Log.i(TAG, "Get records  " + dbDAO.getCount());
+        list_records.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent =new Intent();
+                intent.setClass(DBActivity.this, MapsActivity.class);
+                Bundle bundle =new Bundle();
+                bundle.putDouble("Record_Latitude",dbDAO.dBcontact.get_Lat());
+                bundle.putDouble("Recrord_Longitude",dbDAO.dBcontact.get_Lng());
+                intent.putExtras(bundle);
+                startActivity(intent);
+                dbDAO.close();
+                DBActivity.this.finish();
+            }
+        });
         list_records.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 new AlertDialog.Builder(DBActivity.this)
                         .setTitle("確認刪除?")
-                        .setMessage("刪除第" + (position+1)+"個紀錄?" )
+                        .setMessage("刪除第" + (position+1)+"項紀錄?" )
                         .setPositiveButton("是", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Log.i(TAG, "Delete Listview item   " + position );
-                                dbAdapter.removeItem(position);
+                                Log.i(TAG, "Delete Listview item   " + position);
+                                records.remove(position);
+                                //ListView Delete
                                 Log.i(TAG, "Delete DB item   " + dbcontact.getId());
-                                dbDAO.delete(dbcontact.getId());
+                                dbDAO.delete(position);
+                                //****************DB delete
                                 dbAdapter.notifyDataSetChanged();
                                 Log.i(TAG, "Delete compelete");
                             }

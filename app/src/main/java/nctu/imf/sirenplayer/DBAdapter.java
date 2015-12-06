@@ -54,8 +54,5 @@ public class DBAdapter extends ArrayAdapter<DBcontact> {
             return recordView;
     }
 
-    public void removeItem(long index){
-        dBcontacts.remove(index);
-    }
 
 }
