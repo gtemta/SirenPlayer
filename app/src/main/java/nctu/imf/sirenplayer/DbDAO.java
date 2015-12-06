@@ -4,10 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
+
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,15 +17,10 @@ public class DbDAO {
 
     public static final String TABLE_NAME = "Record";
     public static final String KEY_ID = "_id";
-
-
     public static final String COMMAND = "command";
     public static final String TIME = "time";
 
     public DBcontact dBcontact=new DBcontact();
-
-
-
 
     public static  final String CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
@@ -37,12 +31,10 @@ public class DbDAO {
 
     private static SQLiteDatabase db;
 
-
     public DbDAO(Context context)
     {
         db = MyDBHelper.getDatabase(context);
     }
-
 
     public  void close(){
         db.close();
@@ -56,14 +48,13 @@ public class DbDAO {
         cv.put(COMMAND,dBcontact.get_Command());
         cv.put(TIME,dBcontact.get_Time());
 
-        long id = db.insert(TABLE_NAME, null, cv);
+          long id = db.insert(TABLE_NAME, null, cv);
          dBcontact.Setid(id);
          return dBcontact;
     }
 
 
     public boolean update(DBcontact item) {
-
         ContentValues cv = new ContentValues();
         cv.put(COMMAND,item.get_Command());
         cv.put(TIME,item.getLocaleDatetime());

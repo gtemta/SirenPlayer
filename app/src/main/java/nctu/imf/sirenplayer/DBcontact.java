@@ -1,5 +1,7 @@
 package nctu.imf.sirenplayer;
 
+import java.sql.Time;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
@@ -9,8 +11,9 @@ import java.util.Locale;
 public class DBcontact {
     long _id;
     String _Command;
-    String _Time;
+    String _Time ;
     boolean selected;
+
 
 
     public DBcontact(){
@@ -41,21 +44,26 @@ public class DBcontact {
     }
 
     public String get_Time(){
+
         return _Time;
     }
 
     public String getLocaleDatetime(){
-        return String.format(Locale.getDefault(),"%tF  %<tR", new Date(_Time));
+        SimpleDateFormat format =new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        Date curDate =new Date(System.currentTimeMillis());
+        _Time = format.format(curDate);
+        return _Time;
     }
     public void Set_Time(String time){
-        this._Time =time;
+
+          this._Time =time;
     }
-    public boolean isSelected(){
-        return selected;
-    }
-    public  void setSelected(boolean selected){
-        this.selected =selected;
-    }
+//    public boolean isSelected(){
+//        return selected;
+//    }
+//    public  void setSelected(boolean selected){
+//        this.selected =selected;
+//    }
 
 
 

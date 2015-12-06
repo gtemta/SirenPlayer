@@ -53,6 +53,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by jason on 15/11/13.
@@ -84,7 +85,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FloatingActionButton startSpeech;
     private DbDAO dbDAO;
     private DBcontact searchword;
-
+    private List<DBcontact> records;
+    private DBAdapter dbAdapter;
 
     /***************************Location******************************/
     final LatLng taiwan = new LatLng(25.033408, 121.564099);
@@ -150,6 +152,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         dbDAO= new DbDAO(getApplicationContext());
+
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -569,11 +572,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
 //==============intoDB
-            searchword = new  DBcontact(0,place.getName().toString(),dbDAO.dBcontact.get_Time());
-            dbDAO.insert(searchword);
+            searchword = new  DBcontact((dbDAO.getCount()+1),place.getName().toString(),dbDAO.dBcontact.getLocaleDatetime());
 
-            Log.d(TAG, "Insert to DB"+ place.getName().toString());
+            dbDAO.insert(searchword);
+            Log.d(TAG, "# data in DB :" + dbDAO.getCount());
+            Log.d(TAG, "New Data ID"+searchword.getId() );
+
+            Log.d(TAG, "Insert to DB "+ place.getName().toString());
             LatLng latlng=place.getLatLng();
+            Log.d(TAG, "# data in DB after insert:" + dbDAO.getCount());
             Log.d(TAG, "LatLng:" + String.valueOf(latlng));
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
             builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));

@@ -42,14 +42,15 @@ public class DBAdapter extends ArrayAdapter<DBcontact> {
             String inflater = Context.LAYOUT_INFLATER_SERVICE;
             LayoutInflater li = (LayoutInflater) getContext().getSystemService(inflater);
             li.inflate(resource, recordView, true);
-            TextView CommandView = (TextView) recordView.findViewById(R.id.record_command);
-            TextView TimeView = (TextView) recordView.findViewById(R.id.record_time);
-            CommandView.setText(dBcontact.get_Command());
-            TimeView.setText(dBcontact.get_Time());
+
 
         } else {
             recordView = (LinearLayout) convertView;
         }
+        TextView CommandView = (TextView) recordView.findViewById(R.id.record_command);
+        TextView TimeView = (TextView) recordView.findViewById(R.id.record_time);
+        CommandView.setText(dBcontact.get_Command());
+        TimeView.setText(dBcontact.get_Time());
             return recordView;
     }
 

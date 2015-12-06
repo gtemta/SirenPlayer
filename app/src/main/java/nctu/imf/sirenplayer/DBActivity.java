@@ -44,19 +44,13 @@ public class DBActivity extends Activity{
 
 
         DBactstart();
-        processControl();
-        Intent intent = getIntent();
+
         dbcontact= new DBcontact();
-
-        Log.i(TAG, "DB Example join");
-
-
-
         dbDAO = new DbDAO(getApplicationContext());
         Log.i(TAG, "DB setup ");
 
         if (dbDAO.getCount() == 0){
-            //dbDAO.sample();
+            dbDAO.sample();
         }
         toMap =(Button)findViewById(R.id.back2map);
         toMap.setOnClickListener(new View.OnClickListener() {
@@ -83,10 +77,12 @@ public class DBActivity extends Activity{
                         .setPositiveButton("是", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Log.i(TAG, "Delete" + position );
+                                Log.i(TAG, "Delete Listview item   " + position );
                                 dbAdapter.removeItem(position);
+                                Log.i(TAG, "Delete DB item   " + dbcontact.getId());
                                 dbDAO.delete(dbcontact.getId());
                                 dbAdapter.notifyDataSetChanged();
+                                Log.i(TAG, "Delete compelete");
                             }
                         }).setNegativeButton("否", null).show();
                 return false;
@@ -98,48 +94,32 @@ public class DBActivity extends Activity{
     }
 
 
-    private void processControl(){
-        //onSubmit();
-        AdapterView.OnItemClickListener itemClickListener =new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                DBcontact dBcontact = dbAdapter.getItem(position);
+//private void processMenu(DBcontact dBcontact){
+//    if (dbcontact != null){
+//        dbcontact.setSelected(!dbcontact.isSelected());
+//        if (dbcontact.isSelected()){
+//            selectedCount++;
+//        }
+//        else {
+//            selectedCount--;
+//        }
+//    }
+//    add_record.setVisible(selectedCount == 0);
+//    search_record.setVisible(selectedCount == 0);
+//    delete_record.setVisible(selectedCount>0);
+//}
 
-                if (selectedCount>0){
-
-
-                }
-            }
-        };
-
-    }
-
-private void processMenu(DBcontact dBcontact){
-    if (dbcontact != null){
-        dbcontact.setSelected(!dbcontact.isSelected());
-        if (dbcontact.isSelected()){
-            selectedCount++;
-        }
-        else {
-            selectedCount--;
-        }
-    }
-    add_record.setVisible(selectedCount == 0);
-    search_record.setVisible(selectedCount == 0);
-    delete_record.setVisible(selectedCount>0);
-}
-
-    public void onSubmit(){
-            String Command =dbcontact.get_Command();
-            String Time =dbcontact.get_Time();
-            Intent result = getIntent();
-
-            result.putExtra("Command",Command );
-            result.putExtra("Time", Time);
-
-            setResult(Activity.RESULT_OK, result);
-                finish();
-    }
+//    public void onSubmit(){
+//            String Command =dbcontact.get_Command();
+//            String Time =dbcontact.get_Time();
+//            Intent result = getIntent();
+//
+//            result.putExtra("Command",Command );
+//            result.putExtra("Time", Time);
+//
+//            setResult(Activity.RESULT_OK, result);
+//                finish();
+//    }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
