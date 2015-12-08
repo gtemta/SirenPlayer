@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 
 import java.util.ArrayList;
@@ -21,19 +22,41 @@ public class DbDAO {
     public static final String TIME = "time";
     public static final String LAT = "lat";
     public static final String LNG = "lng";
-
+    private static final String TAG="DBDAO";
     public DBcontact dBcontact=new DBcontact();
 
     public static  final String CREATE_TABLE =
             "CREATE TABLE " + TABLE_NAME + " (" +
-                    KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"+
+                    KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "+
                     COMMAND + " TEXT NOT NULL, " +
                     TIME + " INTEGER NOT NULL, " +
                     LAT + " INTEGER, "+
-                    LNG +" INTEGER )";
+                    LNG +" INTEGER)";
 
+    public static final String TABLE2_NAME = "WRecord";
+    public static final String WORDS_ID = "_wid";
+    public static final String WORDS = "words";
+    public static final String WTIME = "wtime";
+    public static  final String CREATE_TABLE2 =
+            "CREATE TABLE " + TABLE2_NAME + " (" +
+                    WORDS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "+
+                    WORDS + " TEXT NOT NULL, " +
+                    WTIME + " INTEGER NOT NULL)";
+
+    public  DBcontact winsert(DBcontact dBcontact){
+
+        ContentValues cv = new ContentValues();
+        cv.put(WORDS,dBcontact.get_Words());
+        cv.put(WTIME,dBcontact.get_Time());
+
+
+        long id = db.insert(TABLE2_NAME, null, cv);
+        dBcontact.Setid(id);
+        return dBcontact;
+    }
 
     private static SQLiteDatabase db;
+
 
     public DbDAO(Context context)
     {
@@ -72,7 +95,6 @@ public class DbDAO {
 //
 
     public boolean delete(long id){
-
         String where = KEY_ID + "=" + id;
         return db.delete(TABLE_NAME, where, null) > 0;
     }
@@ -82,11 +104,9 @@ public class DbDAO {
         List<DBcontact> result = new ArrayList<>();
         Cursor cursor = db.query(
                 TABLE_NAME, null,null,null,null,null,null);
-
         while (cursor.moveToNext()) {
             result.add(getRecord(cursor));
         }
-
         cursor.close();
         return result;
     }
@@ -98,17 +118,26 @@ public class DbDAO {
 
         result.Setid(cursor.getLong(0));
         result.Set_Command(cursor.getString(1));
-        result.Set_Time(cursor.getString(3));
-//        result.set_Lat(cursor.getDouble(4));
-//        result.set_Lng(cursor.getDouble(5));
+        result.Set_Time(cursor.getString(2));
+        result.set_Lat(cursor.getDouble(3));
+        result.set_Lng(cursor.getDouble(4));
 
-//********Unsure
         return result;
     }
 
     public int getCount() {
         int result = 0;
         Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_NAME, null);
+
+        if (cursor.moveToNext()) {
+            result = cursor.getInt(0);
+        }
+
+        return result;
+    }
+    public int getWCount() {
+        int result = 0;
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE2_NAME, null);
 
         if (cursor.moveToNext()) {
             result = cursor.getInt(0);

@@ -75,7 +75,7 @@ public class DBActivity extends Activity{
                 intent.setClass(DBActivity.this, MapsActivity.class);
                 Bundle bundle =new Bundle();
                 bundle.putDouble("Record_Latitude",dbDAO.dBcontact.get_Lat());
-                bundle.putDouble("Recrord_Longitude",dbDAO.dBcontact.get_Lng());
+                bundle.putDouble("Recrord_Longitude", dbDAO.dBcontact.get_Lng());
                 intent.putExtras(bundle);
                 startActivity(intent);
                 dbDAO.close();
@@ -84,7 +84,7 @@ public class DBActivity extends Activity{
         });
         list_records.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, final long id) {
                 new AlertDialog.Builder(DBActivity.this)
                         .setTitle("確認刪除?")
                         .setMessage("刪除第" + (position+1)+"項紀錄?" )
@@ -94,14 +94,14 @@ public class DBActivity extends Activity{
                                 Log.i(TAG, "Delete Listview item   " + position);
                                 records.remove(position);
                                 //ListView Delete
-                                Log.i(TAG, "Delete DB item   " + dbcontact.getId());
-                                dbDAO.delete(position);
+                                Log.i(TAG, "Delete DB item   " + dbAdapter.get(position).getId());
+                                dbDAO.delete(dbAdapter.get(position).getId());
                                 //****************DB delete
                                 dbAdapter.notifyDataSetChanged();
                                 Log.i(TAG, "Delete compelete");
                             }
                         }).setNegativeButton("否", null).show();
-                return false;
+                return true;
             }
         });
 

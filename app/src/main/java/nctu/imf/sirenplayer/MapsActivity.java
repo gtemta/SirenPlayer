@@ -90,6 +90,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FloatingActionButton startSpeech;
     private DbDAO dbDAO;
     private DBcontact searchword;
+
     private List<DBcontact> records;
     private DBAdapter dbAdapter;
 
@@ -159,7 +160,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startService(intent);
                 startSpeech.setEnabled(false);
                 startSpeech.setVisibility(View.GONE);
-                NotiCreate();
+                /********************/
 
 
             }
@@ -202,13 +203,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng rec_Location = new LatLng(Rlatitude,Rlongitude);
         }
     }
-
-    private void NotiCreate(){
-        NotificationCompat.Builder builder =new NotificationCompat.Builder(this);
-        builder.setSmallIcon(R.drawable.map_icon)
+/****************/
+    private void NotiCreate(Context context, long id){
+        NotificationCompat.Builder noti =new NotificationCompat.Builder(this);
+        noti.setSmallIcon(R.drawable.map_icon)
                 .setContentTitle("SirenPlayer執行中...")
                 .setContentText("語音執行中");
-        //**********補上完整
+        NotificationManager nm = (NotificationManager)
+                context.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify();
     }
 
     // ConnectionCallbacks

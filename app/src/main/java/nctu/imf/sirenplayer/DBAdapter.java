@@ -54,5 +54,8 @@ public class DBAdapter extends ArrayAdapter<DBcontact> {
             return recordView;
     }
 
+    public DBcontact get(int index){
+        return dBcontacts.get(index);
+    }
 
 }

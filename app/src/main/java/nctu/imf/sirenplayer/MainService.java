@@ -2,6 +2,7 @@ package nctu.imf.sirenplayer;
 
 import android.app.Service;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -21,6 +22,8 @@ public class MainService extends Service{
     private SpeechRecognizer speechRecognizer;
     private Intent intent;
     private listener myListener;
+    private DBcontact commandword;
+    private DbDAO dbDAO;
 
 
     @Override
@@ -34,8 +37,10 @@ public class MainService extends Service{
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainService.this);
         speechRecognizer.setRecognitionListener(myListener);
         speechRecognizer.startListening(intent);
+        dbDAO= new DbDAO(getApplicationContext());
 
     }
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -129,7 +134,10 @@ public class MainService extends Service{
             Log.i(TAG,"onResults:");
             ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             String str= (String) data.get(0);
+            Log.d(TAG,str);
             sendResult(str);
+//            commandword = new DBcontact(0,str,commandword.getLocaleDatetime());
+//            dbDAO.winsert(commandword);
             Log.i(TAG, "What:"+str);
             if (str.toUpperCase()=="KILL"){
                 MainService.this.stopSelf();
@@ -137,6 +145,10 @@ public class MainService extends Service{
             restartSpeechRecognizer();
         }
 
+
+        public void onCreate(SQLiteDatabase sqLiteDatabase) {
+            sqLiteDatabase.execSQL(DbDAO.CREATE_TABLE2);
+        }
         @Override
         public void onPartialResults(Bundle partialResults) {
             Log.i(TAG,"onPartialResults");
