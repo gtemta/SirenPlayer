@@ -24,11 +24,13 @@ public class MainService extends Service{
     private listener myListener;
     private DBcontact commandword;
     private DbDAO dbDAO;
+    private static boolean serviceIsOn=false;
 
 
     @Override
     public void onCreate() {
         super.onCreate();
+        serviceIsOn=true;
         myListener=new listener();
         intent=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -55,11 +57,13 @@ public class MainService extends Service{
         speechRecognizer.destroy();
         speechRecognizer=null;
         stopSelf();
+        serviceIsOn=false;
         super.onDestroy();
     }
 
     private void restartSpeechRecognizer() {
         Log.d(TAG, "restartSpeechRecognizer");
+        if (speechRecognizer==null)return;
         speechRecognizer.stopListening();
         speechRecognizer.cancel();
         speechRecognizer.destroy();
@@ -145,10 +149,6 @@ public class MainService extends Service{
             restartSpeechRecognizer();
         }
 
-
-        public void onCreate(SQLiteDatabase sqLiteDatabase) {
-            sqLiteDatabase.execSQL(DbDAO.CREATE_TABLE2);
-        }
         @Override
         public void onPartialResults(Bundle partialResults) {
             Log.i(TAG,"onPartialResults");
@@ -164,5 +164,9 @@ public class MainService extends Service{
         Intent intent = new Intent("my-event");
         intent.putExtra("result", str);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    public static boolean getServiceIsOn(){
+        return serviceIsOn;
     }
 }

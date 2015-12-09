@@ -1,10 +1,11 @@
 package nctu.imf.sirenplayer;
 
-import android.app.Notification;
+import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
@@ -13,16 +14,21 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.NotificationCompat;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Toast;
 import android.support.design.widget.FloatingActionButton;
 
@@ -37,7 +43,6 @@ import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -68,12 +73,31 @@ import java.util.List;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ,ComponentCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks
         ,com.google.android.gms.location.LocationListener{
-    private static final String TAG="MapsActivity";
+    private static final String MapTag ="MapsActivity";
     private static GoogleMap mMap;
     ArrayList<LatLng> markerLatLng;
     private static boolean isFirstStart=true;
     private static boolean isNavigating=false;
     private static boolean isFocusAutocompleteView=false;
+
+
+    /***************************DB******************************/
+    private DBcontact dbcontact;
+    //DB
+    private DbDAO dbDAO;
+    private static final String DBTag ="DBActivity";
+    // ListView使用的自定Adapter物件
+    private DBAdapter dbAdapter;
+    // 儲存所有記事本的List物件
+    private List<DBcontact> records;
+    // 選單項目物件
+    private ListView list_records;
+    private MenuItem add_record,search_record,delete_record;
+    // 已選擇項目數量
+    private int selectedCount = 0;
+    private Button toMap;
+    private LinearLayout DBLayout;
+
 
 
     //=====location====
@@ -86,13 +110,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationManager locationManager;
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
-    private FloatingActionButton sw2DB;
     private FloatingActionButton startSpeech;
-    private DbDAO dbDAO;
-    private DBcontact searchword;
 
-    private List<DBcontact> records;
-    private DBAdapter dbAdapter;
 
 
 
@@ -141,10 +160,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
+    /***********************lifecycle*****************************/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (null!=savedInstanceState){
+            Log.d(MapTag,"savedInstanceState not null. get last location state.");
+            currentLocation.setLatitude(savedInstanceState.getDouble("LAT"));
+            currentLocation.setLongitude(savedInstanceState.getDouble("LNG"));
+        }
         setContentView(R.layout.activity_main);
 
 //        NotificationManager notificationManager =(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
@@ -160,14 +185,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startService(intent);
                 startSpeech.setEnabled(false);
                 startSpeech.setVisibility(View.GONE);
-                /********************/
-
-
             }
         });
-
-        dbDAO= new DbDAO(getApplicationContext());
-
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -178,32 +197,145 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         configGoogleApiClient();
         // 建立Location請求物件
         configLocationRequest();
+
+        Log.i(DBTag, "DB Start Up");
+        DBLayout=(LinearLayout)findViewById(R.id.db_layout);
+        list_records=(ListView)findViewById(R.id.db_listView);
+        toMap=(Button)findViewById(R.id.back2map);
+
+        dbDAO= new DbDAO(getApplicationContext());
+        records = dbDAO.getAll();
+        dbAdapter =new DBAdapter(MapsActivity.this,R.layout.db_item,records);
+        if(dbAdapter==null){
+            Log.d(DBTag,"list_recorder is null");
+        }else{
+            list_records.setAdapter(dbAdapter);
+            Log.i(DBTag, "Get records  " + dbDAO.getCount());
+        }
+
+        toMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DBLayout.setVisibility(View.GONE);
+            }
+        });
+        list_records.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                moveMap(new LatLng(dbDAO.dBcontact.get_Lat(), dbDAO.dBcontact.get_Lng()));
+            }
+        });
+        list_records.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, final long id) {
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("確認刪除?")
+                        .setMessage("刪除第" + (position + 1) + "項紀錄?")
+                        .setPositiveButton("是", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Log.i(DBTag, "Delete Listview item   " + position);
+                                records.remove(position);
+                                //ListView Delete
+                                Log.i(DBTag, "Delete DB item   " + dbAdapter.get(position).getId());
+                                dbDAO.delete(dbAdapter.get(position).getId());
+                                //****************DB delete
+                                dbAdapter.notifyDataSetChanged();
+                                Log.i(DBTag, "Delete compelete");
+                            }
+                        }).setNegativeButton("否", null).show();
+                return true;
+            }
+        });
+
+        Log.i(DBTag, "DB setup OK");
+
         markerLatLng=new ArrayList<>();
         mAutocompleteView = (AutoCompleteTextView)findViewById(R.id.autocomplete_places);
         mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
         mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUND_TAIWAN,null);
         mAutocompleteView.setAdapter(mAdapter);
-        sw2DB =(FloatingActionButton)findViewById(R.id.fab);
-        sw2DB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setClass(MapsActivity.this, DBActivity.class);
-                startActivity(intent);
-                MapsActivity.this.onPause();
 
-            }
-        });
-        Intent Rintent =getIntent();
-        Bundle ext =Rintent.getExtras();
-        if(ext!=null) {
-        Bundle ReceiveSide =this.getIntent().getExtras();
-            Double Rlatitude = ReceiveSide.getDouble("Record_Latitude");
-            Double Rlongitude =ReceiveSide.getDouble("Recrord_Longitude");
-            LatLng rec_Location = new LatLng(Rlatitude,Rlongitude);
+//        Intent Rintent =getIntent();
+//        Bundle ext =Rintent.getExtras();
+//        if(ext!=null) {
+//            Bundle ReceiveSide =this.getIntent().getExtras();
+//            Double Rlatitude = ReceiveSide.getDouble("Record_Latitude");
+//            Double Rlongitude =ReceiveSide.getDouble("Recrord_Longitude");
+//            LatLng rec_Location = new LatLng(Rlatitude,Rlongitude);
+//        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentLocation!=null){
+            moveMap(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
+        }else{
+            moveMap(rec_Location);
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,new IntentFilter("my-event"));
+
+        // 連線到Google API用戶端
+        if (!googleApiClient.isConnected() && currentMarker != null) {
+            googleApiClient.connect();
         }
     }
-/****************/
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (MainService.getServiceIsOn()){
+            Intent intent = new Intent();
+            intent.setClass(MapsActivity.this, MainService.class);
+//                intent.setAction("nctu.imf.sirenplayer.MainService");
+            intent.setPackage(getPackageName());
+            stopService(intent);
+            startSpeech.setEnabled(true);
+            startSpeech.setVisibility(View.VISIBLE);
+        }
+
+        // 移除位置請求服務
+        if (googleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(
+                    googleApiClient, (LocationListener) this);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        // 移除Google API用戶端連線
+        if (googleApiClient.isConnected()) {
+            googleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+//        int pid = android.os.Process.myPid();
+//        android.os.Process.killProcess(pid);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        outState.putDouble("LAT",currentLocation.getLatitude());
+        outState.putDouble("LNG",currentLocation.getLongitude());
+    }
+
+    /**************************util*************************/
+
     private void NotiCreate(Context context, long id){
         NotificationCompat.Builder noti =new NotificationCompat.Builder(this);
         noti.setSmallIcon(R.drawable.map_icon)
@@ -249,7 +381,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (errorCode == ConnectionResult.SERVICE_MISSING) {
             Toast.makeText(MapsActivity.this, R.string.google_play_service_missing, Toast.LENGTH_LONG).show();
         }
-        Log.e(TAG, "onConnectionFailed: ConnectionResult.getErrorCode() = "
+        Log.e(MapTag, "onConnectionFailed: ConnectionResult.getErrorCode() = "
                 + connectionResult.getErrorCode());
 
         // TODO(Developer): Check error code and notify the user of error state and resolution.
@@ -264,10 +396,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         if(isNavigating){
             if(currentLocation!=null){
-                double deltaLat = location.getLatitude()-currentLocation.getLatitude();  //y +north
-                double deltaLon = location.getLongitude()-currentLocation.getLongitude();  //x +east
-                float ctrlBearing = (float)Math.atan2(deltaLat,deltaLon);
-                Log.d("Bearing",ctrlBearing+" degrees");
+                int mQuadrant=0;
+                float ctrlBearing;
+                double deltaLat = (location.getLatitude()-currentLocation.getLatitude())/180;  //y +north
+                double deltaLng = (location.getLongitude()-currentLocation.getLongitude())/360;  //x +east
+                if (deltaLat>0&&deltaLng>0){
+                    mQuadrant=1;
+                     ctrlBearing = 90 - (float)(Math.atan2(deltaLat,deltaLng)*180);
+                }else if (deltaLat>0&&deltaLng==0){//+y
+                    ctrlBearing = 0;
+                }
+                else if (deltaLat<0&&deltaLng>0){
+                    mQuadrant=2;
+                    ctrlBearing = 450 - (float)(Math.atan2(deltaLat,deltaLng)*180);
+                }else if (deltaLat==0&&deltaLng<0){//-x
+                    ctrlBearing = 270;
+                }
+                else if (deltaLat<0&&deltaLng<0){
+                    mQuadrant=3;
+                    ctrlBearing = 90 - (float)(Math.atan2(deltaLat,deltaLng)*180);
+                }else if (deltaLat<0&&deltaLng==0){//-y
+                    ctrlBearing = 180;
+                }
+                else if (deltaLat>0&&deltaLng<0){
+                    mQuadrant=4;
+                    ctrlBearing = 90 - (float)(Math.atan2(deltaLat,deltaLng)*180);
+                }
+                else {//+x
+                    ctrlBearing = 90;
+                }
+                Log.d("Bearing","Quadrant:"+mQuadrant+"degree:"+ctrlBearing);
                 moving(latLng,ctrlBearing,65.5f,18f);
             }
         }
@@ -285,7 +443,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (mMap == null) {
             mMap = googleMap;
         }
-        moveMap(taiwan);
 
         // Add a marker in Sydney and move the camera
 //        mMap.addMarker(new MarkerOptions().position(taiwan).title("Taiwan"));
@@ -385,55 +542,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .snippet(snippet);
 
         mMap.addMarker(markerOptions);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (currentLocation!=null){
-            moveMap(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()));
-        }else{
-            moveMap(rec_Location);
-        }
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
-                new IntentFilter("my-event"));
-        //setUpMapIfNeeded();
-
-        // 連線到Google API用戶端
-        if (!googleApiClient.isConnected() && currentMarker != null) {
-            googleApiClient.connect();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // 移除位置請求服務
-        if (googleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(
-                    googleApiClient, (LocationListener) this);
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
-        // 移除Google API用戶端連線
-        if (googleApiClient.isConnected()) {
-            googleApiClient.disconnect();
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
     }
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
@@ -565,7 +673,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             final String placeId = item.getPlaceId();
             final CharSequence primaryText = item.getPrimaryText(null);
 
-            Log.i(TAG, "Autocomplete item selected: " + primaryText);
+            Log.i(MapTag, "Autocomplete item selected: " + primaryText);
 
             /*
              Issue a request to the Places Geo Data API to retrieve a Place object with additional
@@ -574,7 +682,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.getPlaceById(googleApiClient, placeId);
             placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
 
-            Log.i(TAG, "Called getPlaceById to get Place details for " + placeId);
+            Log.i(MapTag, "Called getPlaceById to get Place details for " + placeId);
         }
     };
 
@@ -588,7 +696,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onResult(PlaceBuffer places) {
             if (!places.getStatus().isSuccess()) {
                 // Request did not complete successfully
-                Log.e(TAG, "Place query did not complete. Error: " + places.getStatus().toString());
+                Log.e(MapTag, "Place query did not complete. Error: " + places.getStatus().toString());
                 places.release();
                 return;
             }
@@ -600,26 +708,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             final Place place = places.get(0);
 
             // Format details of the place for display and show it in a TextView.
-            Log.d(TAG, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
+            Log.d(MapTag, String.valueOf(formatPlaceDetails(getResources(), place.getName(),
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
-//==============intoDB
 
+/************************intoDB************************/
             LatLng latlng=place.getLatLng();
-            Log.d(TAG, "# data in DB after insert:" + dbDAO.getCount());
-            Log.d(TAG, "LatLng:" + String.valueOf(latlng));
-            searchword = new  DBcontact((dbDAO.getCount()+1)
+            Log.d(MapTag, "# data in DB after insert:" + dbDAO.getCount());
+            Log.d(MapTag, "LatLng:" + String.valueOf(latlng));
+            dbcontact = new  DBcontact((dbDAO.getCount()+1)
                     ,place.getName().toString()
                     ,dbDAO.dBcontact.getLocaleDatetime()
                     ,latlng.latitude
                     ,latlng.longitude
             );
-            dbDAO.insert(searchword);
-            Log.d(TAG, "# data in DB :" + dbDAO.getCount());
-            Log.d(TAG, "New Data ID"+searchword.getId() );
-            Log.d(TAG, "Insert to DB "+ place.getName().toString());
-            Log.d(TAG, "Lat " + latlng.latitude);
-            Log.d(TAG, "Lon " + latlng.longitude);
+            dbDAO.insert(dbcontact);
+            Log.d(MapTag, "# data in DB :" + dbDAO.getCount());
+            Log.d(MapTag, "New Data ID"+dbcontact.getId() );
+            Log.d(MapTag, "Insert to DB "+ place.getName().toString());
+            Log.d(MapTag, "Lat " + latlng.latitude);
+            Log.d(MapTag, "Lon " + latlng.longitude);
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
             builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
             builder.include(latlng);
@@ -632,16 +740,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             //Close Keyboard
             InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-           imm.hideSoftInputFromWindow(MapsActivity.this.getCurrentFocus().getWindowToken(),InputMethodManager.HIDE_NOT_ALWAYS);
+            imm.hideSoftInputFromWindow(MapsActivity.this.getCurrentFocus().getWindowToken(),InputMethodManager.HIDE_NOT_ALWAYS);
 
 
             // Display the third party attributions if set.
             final CharSequence thirdPartyAttribution = places.getAttributions();
             if (thirdPartyAttribution != null) {
-                Log.d(TAG, String.valueOf(Html.fromHtml(thirdPartyAttribution.toString())));
+                Log.d(MapTag, String.valueOf(Html.fromHtml(thirdPartyAttribution.toString())));
             }
 
-            Log.i(TAG, "Place details received: " + place.getName());
+            Log.i(MapTag, "Place details received: " + place.getName());
 
             places.release();
         }
@@ -660,6 +768,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             isFocusAutocompleteView=false;
         }
         switch (caseSelect){
+            case "資料庫":
+            case "歷史紀錄":
+            case "紀錄":
+            case "開啟資料庫":
+            case "開啟歷史紀錄":
+            case "開啟紀錄":
+                records.clear();
+                records.addAll(dbDAO.getAll());
+                dbAdapter.notifyDataSetChanged();
+                DBLayout.setVisibility(View.VISIBLE);
+                break;
             case "結束語音":
             case "關閉語音":
             case "離開語音":
@@ -713,8 +832,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (mMap.getCameraPosition().zoom<=mMap.getMinZoomLevel())break;
                 mMap.animateCamera( CameraUpdateFactory.zoomTo( mMap.getCameraPosition().zoom - 1 ) );
                 break;
-
-
         }
     }
 }

@@ -36,4 +36,45 @@
 
         </LinearLayout>
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/db_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/corner_layout"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <ListView
+                android:id="@+id/db_listView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal"
+                android:background="#5F5F5F"
+                android:clickable="true"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/back2map"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="close"
+                android:background="@drawable/corner_btn"
+                android:topLeftRadius="5dp"
+                android:topRightRadius="5dp"
+                android:bottomRightRadius="5dp"
+                android:bottomLeftRadius="5dp" />
+        </LinearLayout>
+    </LinearLayout>
 </RelativeLayout>
