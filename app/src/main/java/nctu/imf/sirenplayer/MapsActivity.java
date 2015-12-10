@@ -246,6 +246,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             public void onClick(DialogInterface dialog, int which) {
                                 Log.d(DBTag, "Delete id : " + id);
                                 Log.d(DBTag, "Delete dbAdapter get(position) id: " + dbAdapter.get(position).getId());
+                                records.remove(position);
                                 dbDAO.delete(dbAdapter.get(position).getId());
 
                                 records.clear();
