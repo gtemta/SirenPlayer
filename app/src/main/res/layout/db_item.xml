@@ -14,7 +14,7 @@
         android:id="@+id/record_command"
         android:gravity="left"
         android:singleLine="false"
-        android:textColor="#E03C8A" />
+        android:textColor="#55a7ea" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -25,8 +25,8 @@
         android:layout_below="@+id/record_command"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textColor="#66baa2"
-        android:textSize="15sp"
+        android:textColor="#f9ffffff"
+        android:textSize="17sp"
          />
 
 

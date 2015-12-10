@@ -92,9 +92,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<DBcontact> records;
     // 選單項目物件
     private ListView list_records;
-    private MenuItem add_record,search_record,delete_record;
-    // 已選擇項目數量
-    private int selectedCount = 0;
     private Button toMap;
     private LinearLayout DBLayout;
     private static final int NOTI_ID =100;
@@ -174,7 +171,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         setContentView(R.layout.activity_main);
 
-//        NotificationManager notificationManager =(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 
         startSpeech = (FloatingActionButton) findViewById(R.id.start_speech);
         startSpeech.setOnClickListener(new View.OnClickListener() {
@@ -208,6 +204,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         dbDAO= new DbDAO(getApplicationContext());
         records = dbDAO.getAll();
+        for(DBcontact record: records)
+        {
+            Log.d(DBTag, "ID in DB : " + record.getId());
+        }
+
         dbAdapter =new DBAdapter(MapsActivity.this,R.layout.db_item,records);
         if(dbAdapter==null){
             Log.d(DBTag,"list_recorder is null");
@@ -245,12 +246,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Log.d(DBTag, "Delete id : " + id);
+                                Log.d(DBTag, "number in DB : " + dbDAO.getCount());
                                 Log.d(DBTag, "Delete dbAdapter get(position) id: " + dbAdapter.get(position).getId());
-                                records.remove(position);
-                                dbDAO.delete(dbAdapter.get(position).getId());
 
-                                records.clear();
-                                records = dbDAO.getAll();
+
+//                                if (dbAdapter.getCount()== id){
+//                                    records.clear();
+//                                    dbDAO.delete(dbAdapter.get(position).getId());
+//                                    dbAdapter.notifyDataSetChanged();
+//                                    records = dbDAO.getAll();
+//                                    DBLayout.setVisibility(View.VISIBLE);
+//                                }
+//                                else {
+                                Log.d(DBTag, "dbadapter: " + dbAdapter.get(position).getId());
+                                dbDAO.delete(dbAdapter.get(position).getId());
+//                                }
+                                records.remove(position);
                                 dbAdapter.notifyDataSetChanged();
                                 Log.d(DBTag, "Delete compelete");
                             }
@@ -276,6 +287,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //            LatLng rec_Location = new LatLng(Rlatitude,Rlongitude);
 //        }
     }
+
 
     @Override
     protected void onStart() {
@@ -333,6 +345,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        NotiClear();
 
 //        int pid = android.os.Process.myPid();
 //        android.os.Process.killProcess(pid);
@@ -685,18 +698,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              read the place ID and title.
               */
             final AutocompletePrediction item = mAdapter.getItem(position);
+            Log.d(MapTag, "AutoComplete ID"+ mAdapter.getItem(position) );
             final String placeId = item.getPlaceId();
             final CharSequence primaryText = item.getPrimaryText(null);
-
             Log.i(MapTag, "Autocomplete item selected: " + primaryText);
-
             /*
              Issue a request to the Places Geo Data API to retrieve a Place object with additional
              details about the place.
               */
             PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.getPlaceById(googleApiClient, placeId);
             placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
-
             Log.i(MapTag, "Called getPlaceById to get Place details for " + placeId);
         }
     };
@@ -848,6 +859,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (mMap.getCameraPosition().zoom<=mMap.getMinZoomLevel())break;
                 mMap.animateCamera( CameraUpdateFactory.zoomTo( mMap.getCameraPosition().zoom - 1 ) );
                 break;
+            case  "第一筆":
+            case  "第二筆":
+            case  "第三筆":
+            case  "第四筆":
+            case  "第五筆":
+
         }
     }
 }
