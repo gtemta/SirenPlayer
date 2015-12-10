@@ -1,6 +1,7 @@
 package nctu.imf.sirenplayer;
 
 import android.app.AlertDialog;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks;
@@ -15,9 +16,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.NotificationCompat;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
@@ -30,7 +31,6 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.support.design.widget.FloatingActionButton;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -97,6 +97,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int selectedCount = 0;
     private Button toMap;
     private LinearLayout DBLayout;
+    private static final int NOTI_ID =100;
 
 
 
@@ -186,6 +187,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startService(intent);
                 startSpeech.setEnabled(false);
                 startSpeech.setVisibility(View.GONE);
+                NotiCreate();
             }
         });
 
@@ -344,14 +346,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     /**************************util*************************/
 
-    private void NotiCreate(Context context, long id){
-        NotificationCompat.Builder noti =new NotificationCompat.Builder(this);
-        noti.setSmallIcon(R.drawable.map_icon)
+    private void NotiCreate(){
+        Notification notification = new Notification.Builder(this)
+                .setSmallIcon(R.drawable.map_icon)
+                .setTicker("語音辨識中")
                 .setContentTitle("SirenPlayer執行中...")
-                .setContentText("語音執行中");
-        NotificationManager nm = (NotificationManager)
-                context.getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.notify();
+                .setContentText("語音執行中")
+                .build();
+        NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(NOTI_ID, notification);
+    }
+    private void NotiClear(){
+        ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(NOTI_ID);
     }
 
     // ConnectionCallbacks
@@ -799,6 +805,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 stopService(intent);
                 startSpeech.setEnabled(true);
                 startSpeech.setVisibility(View.VISIBLE);
+                NotiClear();
                 break;
             case "結束":
             case "關閉":
