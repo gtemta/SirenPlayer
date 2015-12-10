@@ -6,16 +6,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
@@ -110,32 +106,6 @@ public class DBActivity extends Activity{
     }
 
 
-//private void processMenu(DBcontact dBcontact){
-//    if (dbcontact != null){
-//        dbcontact.setSelected(!dbcontact.isSelected());
-//        if (dbcontact.isSelected()){
-//            selectedCount++;
-//        }
-//        else {
-//            selectedCount--;
-//        }
-//    }
-//    add_record.setVisible(selectedCount == 0);
-//    search_record.setVisible(selectedCount == 0);
-//    delete_record.setVisible(selectedCount>0);
-//}
-
-//    public void onSubmit(){
-//            String Command =dbcontact.get_Command();
-//            String Time =dbcontact.get_Time();
-//            Intent result = getIntent();
-//
-//            result.putExtra("Command",Command );
-//            result.putExtra("Time", Time);
-//
-//            setResult(Activity.RESULT_OK, result);
-//                finish();
-//    }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
@@ -152,23 +122,6 @@ public class DBActivity extends Activity{
         Log.i(TAG, "DBactivity Start Up");
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu){
-//        menu.add(0, Menu.FIRST, 0, "delete item");
-//        return super.onCreateOptionsMenu(menu);
-//    }
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item){
-//        switch (item.getItemId()){
-//            case Menu.FIRST :
-////                dbAdapter.removeItem();
-//                dbAdapter.notifyDataSetChanged();
-//                break;
-//
-//
-//        }
-//        return  super.onOptionsItemSelected(item);
-//    }
 
 
 
