@@ -230,7 +230,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),goLatLng);
                     Log.d(MapTag,"Navigation from current to "+dbAdapter.get(position).get_Command());
                 }
-
+                DBLayout.setVisibility(View.GONE);
             }
         });
         list_records.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
