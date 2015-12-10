@@ -107,6 +107,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationRequest locationRequest;
     // 記錄目前最新的位置
     private static Location currentLocation;
+    private static LatLng goLatLng;
     private LocationManager locationManager;
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
@@ -222,7 +223,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         list_records.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                moveMap(new LatLng(dbDAO.dBcontact.get_Lat(), dbDAO.dBcontact.get_Lng()));
+                goLatLng=new LatLng(dbAdapter.get(position).get_Lat(), dbAdapter.get(position).get_Lng());
+                moveMap(goLatLng);
+                addMarker(goLatLng,dbAdapter.get(position).get_Command(),"上次查詢時間:"+dbAdapter.get(position).get_Time());
+                if (goLatLng!=null){
+                    mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),goLatLng);
+                    Log.d(MapTag,"Navigation from current to "+dbAdapter.get(position).get_Command());
+                }
+
             }
         });
         list_records.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -230,18 +238,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, final long id) {
                 new AlertDialog.Builder(MapsActivity.this)
                         .setTitle("確認刪除?")
-                        .setMessage("刪除第" + (position + 1) + "項紀錄?")
+                        .setMessage("刪除'" + dbAdapter.get(position).get_Command() + "'?")
                         .setPositiveButton("是", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Log.i(DBTag, "Delete Listview item   " + position);
-                                records.remove(position);
-                                //ListView Delete
-                                Log.i(DBTag, "Delete DB item   " + dbAdapter.get(position).getId());
+                                Log.d(DBTag, "Delete id : " + id);
+                                Log.d(DBTag, "Delete dbAdapter get(position) id: " + dbAdapter.get(position).getId());
                                 dbDAO.delete(dbAdapter.get(position).getId());
-                                //****************DB delete
+
+                                records.clear();
+                                records = dbDAO.getAll();
                                 dbAdapter.notifyDataSetChanged();
-                                Log.i(DBTag, "Delete compelete");
+                                Log.d(DBTag, "Delete compelete");
                             }
                         }).setNegativeButton("否", null).show();
                 return true;
@@ -712,7 +720,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     place.getId(), place.getAddress(), place.getPhoneNumber(),
                     place.getWebsiteUri())));
 
-/************************intoDB************************/
+            /************************intoDB************************/
             LatLng latlng=place.getLatLng();
             Log.d(MapTag, "# data in DB after insert:" + dbDAO.getCount());
             Log.d(MapTag, "LatLng:" + String.valueOf(latlng));
