@@ -228,7 +228,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 goLatLng=new LatLng(dbAdapter.get(position).get_Lat(), dbAdapter.get(position).get_Lng());
                 moveMap(goLatLng);
-                addMarker(goLatLng,dbAdapter.get(position).get_Command(),"上次查詢時間:"+dbAdapter.get(position).get_Time());
+                addMarker(goLatLng, dbAdapter.get(position).get_Command(), "上次查詢時間:" + dbAdapter.get(position).get_Time());
+                Log.d(DBTag, "Record list view position" + position);
                 if (goLatLng!=null){
                     mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),goLatLng);
                     Log.d(MapTag,"Navigation from current to "+dbAdapter.get(position).get_Command());
@@ -278,14 +279,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUND_TAIWAN,null);
         mAutocompleteView.setAdapter(mAdapter);
 
-//        Intent Rintent =getIntent();
-//        Bundle ext =Rintent.getExtras();
-//        if(ext!=null) {
-//            Bundle ReceiveSide =this.getIntent().getExtras();
-//            Double Rlatitude = ReceiveSide.getDouble("Record_Latitude");
-//            Double Rlongitude =ReceiveSide.getDouble("Recrord_Longitude");
-//            LatLng rec_Location = new LatLng(Rlatitude,Rlongitude);
-//        }
     }
 
 
@@ -712,6 +705,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
+
+    private void tapOnAutoComplete( int activeposition){
+//should be set AdapterView or abslistView
+//        mAdapter.getResultList()
+//                .performItemClick(mAutocompleteView.getAdapter().getView(activeposition, null, null)
+//                        , activeposition, mAutocompleteView.getAdapter().getItemId(activeposition));
+
+    }
+
     /**
      * Callback for results from a Places Geo Data API query that shows the first place result in
      * the details view on screen.
@@ -780,6 +782,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             places.release();
         }
     };
+    private void tapOnRecord(int position)
+    {
+        list_records.performItemClick(list_records.getAdapter().getView(position, null, null)
+                , position, list_records.getAdapter().getItemId(position));
+    }
+
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
                                               CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
@@ -804,6 +812,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 records.addAll(dbDAO.getAll());
                 dbAdapter.notifyDataSetChanged();
                 DBLayout.setVisibility(View.VISIBLE);
+                break;
+            case  "第一筆":
+                 tapOnRecord(1);
+                 break;
+            case  "第二筆":
+                tapOnRecord(2);
+                break;
+            case  "第三筆":
+                tapOnRecord(3);
+                break;
+            case  "第四筆":
+                tapOnRecord(4);
+                break;
+            case  "第五筆":
+                tapOnRecord(5);
                 break;
             case "結束語音":
             case "關閉語音":
@@ -859,11 +882,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (mMap.getCameraPosition().zoom<=mMap.getMinZoomLevel())break;
                 mMap.animateCamera( CameraUpdateFactory.zoomTo( mMap.getCameraPosition().zoom - 1 ) );
                 break;
-            case  "第一筆":
-            case  "第二筆":
-            case  "第三筆":
-            case  "第四筆":
-            case  "第五筆":
+
 
         }
     }
