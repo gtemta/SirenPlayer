@@ -230,14 +230,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 goLatLng=new LatLng(dbAdapter.get(position).get_Lat(), dbAdapter.get(position).get_Lng());
-
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
-                builder.include(goLatLng);
-                LatLngBounds bounds=builder.build();
-                int padding = 100; // offset from edges of the map in pixels
-                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
-
+                moveMap(goLatLng);
                 addMarker(goLatLng, dbAdapter.get(position).get_Command(), "上次查詢時間:" + dbAdapter.get(position).get_Time());
                 Log.d(DBTag, "Record list view position" + position);
                 Log.e(DBTag, "LATLNG " + goLatLng);
@@ -826,7 +819,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
             builder.include(latlng);
             LatLngBounds bounds=builder.build();
-            int padding = 100; // offset from edges of the map in pixels
+            int padding = 50; // offset from edges of the map in pixels
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
             addMarker(latlng, String.valueOf(place.getName())
                     , String.valueOf(place.getAddress()));
@@ -867,7 +860,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mAutocompleteView.setText(caseSelect);
             isFocusAutocompleteView=false;
         }
-        int mSwitch=0;
         switch (caseSelect){
             case "資料庫":
             case "歷史紀錄":
@@ -881,41 +873,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 DBLayout.setVisibility(View.VISIBLE);
                 break;
             case  "第一筆":
-                if (DBLayout.getVisibility()==View.VISIBLE){
-                    tapOnRecord(0);
-                }else{
-                    mSwitch=1;
-                }
-                break;
+                 tapOnRecord(1);
+                 break;
             case  "第二筆":
-                if (DBLayout.getVisibility()==View.VISIBLE){
-                    tapOnRecord(1);
-                }else{
-                    mSwitch=2;
-                }
+                tapOnRecord(2);
                 break;
             case  "第三筆":
-                if (DBLayout.getVisibility()==View.VISIBLE){
-                    tapOnRecord(2);
-                }else{
-                    mSwitch=3;
-                }
+                tapOnRecord(3);
                 break;
             case  "第四筆":
-                if (DBLayout.getVisibility()==View.VISIBLE){
-                    tapOnRecord(3);
-                }else{
-                    mSwitch=4;
-                }
+                tapOnRecord(4);
                 break;
             case  "第五筆":
-                if (DBLayout.getVisibility()==View.VISIBLE){
-                    tapOnRecord(4);
-                }else{
-                    mSwitch=5;
-                }
+                tapOnRecord(5);
                 break;
-            case "閉嘴":
             case "結束語音":
             case "關閉語音":
             case "離開語音":
@@ -930,8 +901,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startSpeech.setVisibility(View.VISIBLE);
                 NotiClear();
                 break;
-            case "關閉":
             case "結束":
+            case "關閉":
             case "離開":
                 finish();
                 break;
@@ -971,29 +942,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (mMap.getCameraPosition().zoom<=mMap.getMinZoomLevel())break;
                 mMap.animateCamera( CameraUpdateFactory.zoomTo( mMap.getCameraPosition().zoom - 1 ) );
                 break;
-        }
-        if (mSwitch!=0){
-            try{
-                final AutocompletePrediction item = mAdapter.getItem(mSwitch-1);
-                Log.d(MapTag, "AutoComplete ID"+ mAdapter.getItem(mSwitch-1) );
-                final String placeId = item.getPlaceId();
-                final CharSequence primaryText = item.getPrimaryText(null);
-                Log.i(MapTag, "Autocomplete item selected: " + primaryText);
-            /*
-             Issue a request to the Places Geo Data API to retrieve a Place object with additional
-             details about the place.
-              */
-                PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.getPlaceById(googleApiClient, placeId);
-                placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
-                Log.i(MapTag, "Called getPlaceById to get Place details for " + placeId);
 
-                //Close Keyboard
-                InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(MapsActivity.this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                mAutocompleteView.setText("");
-            }catch (Exception e){
-                Log.d(MapTag,e.toString());
-            }
+
         }
     }
 }
