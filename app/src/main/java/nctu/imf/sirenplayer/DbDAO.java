@@ -98,7 +98,9 @@ public class DbDAO {
         String where = KEY_ID + "=" + id;
         return db.delete(TABLE_NAME, where, null) > 0;
     }
-
+    public void clean(){
+        db.delete(TABLE_NAME,null,null);
+    }
 
     public List<DBcontact> getAll() {
         List<DBcontact> result = new ArrayList<>();

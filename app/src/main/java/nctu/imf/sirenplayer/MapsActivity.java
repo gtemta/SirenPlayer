@@ -926,6 +926,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "關閉":
             case "結束":
             case "離開":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    DBLayout.setVisibility(View.GONE);
+                    break;
+                }
                 finish();
                 break;
             case "導航":
@@ -975,7 +979,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "機車":
                 myMode=DRIVE_AVOID_HIGHWAY;
                 break;
-
+            case "清除資料庫":
+            case "清除資料":
+            case "清除歷史紀錄":
+            case "清除紀錄":
+                dbDAO.clean();
+                records.clear();
+                dbAdapter.notifyDataSetChanged();
         }
         if (mSwitch!=0){
             try{
