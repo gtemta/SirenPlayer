@@ -30,6 +30,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -97,8 +98,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int NOTI_ID =100;
     private boolean isFirstNavigation = true;
 
-
-
     //=====location====
     // Google API用戶端物件
     private GoogleApiClient googleApiClient;
@@ -115,7 +114,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean getService = false;
 
 
-
+    /***************************Log******************************/
+    private static boolean isShowLog=true;
+    private TextView logTextView;
 
     /***************************Location******************************/
     final LatLng taiwan = new LatLng(25.033408, 121.564099);
@@ -296,6 +297,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUND_TAIWAN,null);
         mAutocompleteView.setAdapter(mAdapter);
 
+        if (isShowLog){
+            logTextView=(TextView)findViewById(R.id.log_text_view);
+            logTextView.setVisibility(View.VISIBLE);
+        }
     }
 
 
@@ -333,6 +338,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             startSpeech.setEnabled(true);
             startSpeech.setVisibility(View.VISIBLE);
         }
+        NotiClear();
 
         // 移除位置請求服務
         if (googleApiClient.isConnected()) {
@@ -413,8 +419,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
-
     // ConnectionCallbacks
     @Override
     public void onConnected(Bundle bundle) {
@@ -465,49 +469,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         if(isNavigating){
-            if(currentLocation!=null){
-                int mQuadrant=0;
-
-                Log.d("Count ","Times: "+ isFirstNavigation);
-                float ctrlBearing;
-                double deltaLat = (location.getLatitude()-currentLocation.getLatitude())/180;  //y +north
-                double deltaLng = (location.getLongitude()-currentLocation.getLongitude())/360;  //x +east
-                Log.d("Delta of","Lat: "+deltaLat+"| Lng:"+deltaLng);
-
-                //smalller than 20 meters donot turn
-                float[] f=new float[1];
-                Location.distanceBetween(nCurrentLocation.getLatitude(),nCurrentLocation.getLongitude()
-                        ,location.getLatitude(),location.getLongitude(),f);
-                Log.d("Distance: " ," " + nCurrentLocation.distanceTo(location));
-                if (nCurrentLocation.distanceTo(location)>10 || isFirstNavigation)
+            if(nCurrentLocation!=null){
+                float ctrlBearing=nCurrentLocation.bearingTo(location);
+                float ctrlDistance=nCurrentLocation.distanceTo(location);
+                if (ctrlDistance>10 || isFirstNavigation)
                 {
-                if (deltaLat>0&&deltaLng>0){
-                    mQuadrant=1;
-                     ctrlBearing = 90 - (float)(Math.atan2(deltaLat,deltaLng)*180);
-                }else if (deltaLat>0&&deltaLng==0){//+y
-                    ctrlBearing = 0;
-                }
-                else if (deltaLat<0&&deltaLng>0){
-                    mQuadrant=2;
-                    ctrlBearing = 450 - (float)(Math.atan2(deltaLat,deltaLng)*180);
-                }else if (deltaLat==0&&deltaLng<0){//-x
-                    ctrlBearing = 270;
-                }
-                else if (deltaLat<0&&deltaLng<0){
-                    mQuadrant=3;
-                    ctrlBearing = 90 - (float)(Math.atan2(deltaLat,deltaLng)*180);
-                }else if (deltaLat<0&&deltaLng==0){//-y
-                    ctrlBearing = 180;
-                }
-                else if (deltaLat>0&&deltaLng<0){
-                    mQuadrant=4;
-                    ctrlBearing = 90 - (float)(Math.atan2(deltaLat,deltaLng)*180);
-                }
-                else {//+x
-                    ctrlBearing = 90;
-                }
-                Log.d("Bearing","Quadrant:"+mQuadrant+"degree:"+ctrlBearing);
-                moving(latLng, ctrlBearing, 65.5f, 18f);
+                    if (isShowLog){
+                        logTextView.setText("last:" + nCurrentLocation.getLatitude() + "," + nCurrentLocation.getLongitude() + "\n");
+                        logTextView.append("current:" + location.getLatitude() + "," + location.getLongitude() + "\n");
+                        logTextView.append("bearing:"+ctrlBearing+" ,distance:"+ctrlDistance);
+                    }
+                    Log.d(MapTag,"last:" + nCurrentLocation.getLatitude() + "," + nCurrentLocation.getLongitude());
+                    Log.d(MapTag,"current:" + location.getLatitude() + "," + location.getLongitude());
+                    Log.d(MapTag,"bearing:"+ctrlBearing+" ,distance:"+ctrlDistance);
+                    moving(latLng, ctrlBearing, 65.5f, 18f);
                     isFirstNavigation =false;
                     nCurrentLocation=location;
                 }
@@ -854,7 +829,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void CaseSelect(String caseSelect){
-        if (isFocusAutocompleteView){
+        if (caseSelect.startsWith("搜尋")||caseSelect.startsWith("尋找")){
+            if (caseSelect.length()>=2){
+                String mySubstring=caseSelect.substring(2);
+                mAutocompleteView.setText(mySubstring);
+                isFocusAutocompleteView=false;
+                logTextView.setText("caseSelect"+caseSelect+",mySubstring:"+mySubstring);
+                Log.d(MapTag,"caseSelect"+caseSelect+",mySubstring:"+mySubstring);
+            }
+        }
+        else if (isFocusAutocompleteView){
             mAutocompleteView.setText(caseSelect);
             isFocusAutocompleteView=false;
         }
