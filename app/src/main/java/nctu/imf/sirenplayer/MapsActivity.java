@@ -230,8 +230,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 goLatLng=new LatLng(dbAdapter.get(position).get_Lat(), dbAdapter.get(position).get_Lng());
-                moveMap(goLatLng);
-<<<<<<< HEAD
+
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                builder.include(goLatLng);
+                LatLngBounds bounds=builder.build();
+                int padding = 100; // offset from edges of the map in pixels
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+
                 addMarker(goLatLng, dbAdapter.get(position).get_Command(), "上次查詢時間:" + dbAdapter.get(position).get_Time());
                 Log.d(DBTag, "Record list view position" + position);
                 Log.e(DBTag, "LATLNG " + goLatLng);
@@ -240,9 +246,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.e(DBTag, "Lng " + currentLocation.getLongitude());
 
 
-=======
-                addMarker(goLatLng,dbAdapter.get(position).get_Command(),"上次查詢時間:"+dbAdapter.get(position).get_Time());
->>>>>>> parent of d516aab... 1213temp
                 if (goLatLng!=null){
                     Log.d(MapTag,"TEST "+dbAdapter.get(position).get_Command());
                     mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),goLatLng);
@@ -293,14 +296,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mAdapter = new PlaceAutocompleteAdapter(this, googleApiClient, BOUND_TAIWAN,null);
         mAutocompleteView.setAdapter(mAdapter);
 
-//        Intent Rintent =getIntent();
-//        Bundle ext =Rintent.getExtras();
-//        if(ext!=null) {
-//            Bundle ReceiveSide =this.getIntent().getExtras();
-//            Double Rlatitude = ReceiveSide.getDouble("Record_Latitude");
-//            Double Rlongitude =ReceiveSide.getDouble("Recrord_Longitude");
-//            LatLng rec_Location = new LatLng(Rlatitude,Rlongitude);
-//        }
     }
 
 
@@ -776,6 +771,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
+
+    private void tapOnAutoComplete( int activeposition){
+//should be set AdapterView or abslistView
+//        mAdapter.getResultList()
+//                .performItemClick(mAutocompleteView.getAdapter().getView(activeposition, null, null)
+//                        , activeposition, mAutocompleteView.getAdapter().getItemId(activeposition));
+
+    }
+
     /**
      * Callback for results from a Places Geo Data API query that shows the first place result in
      * the details view on screen.
@@ -822,7 +826,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
             builder.include(latlng);
             LatLngBounds bounds=builder.build();
-            int padding = 50; // offset from edges of the map in pixels
+            int padding = 100; // offset from edges of the map in pixels
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
             addMarker(latlng, String.valueOf(place.getName())
                     , String.valueOf(place.getAddress()));
@@ -844,6 +848,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             places.release();
         }
     };
+    private void tapOnRecord(int position)
+    {
+        list_records.performItemClick(list_records.getAdapter().getView(position, null, null)
+                , position, list_records.getAdapter().getItemId(position));
+    }
+
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
                                               CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
@@ -857,6 +867,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mAutocompleteView.setText(caseSelect);
             isFocusAutocompleteView=false;
         }
+        int mSwitch=0;
         switch (caseSelect){
             case "資料庫":
             case "歷史紀錄":
@@ -869,6 +880,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 dbAdapter.notifyDataSetChanged();
                 DBLayout.setVisibility(View.VISIBLE);
                 break;
+            case  "第一筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    tapOnRecord(0);
+                }else{
+                    mSwitch=1;
+                }
+                break;
+            case  "第二筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    tapOnRecord(1);
+                }else{
+                    mSwitch=2;
+                }
+                break;
+            case  "第三筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    tapOnRecord(2);
+                }else{
+                    mSwitch=3;
+                }
+                break;
+            case  "第四筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    tapOnRecord(3);
+                }else{
+                    mSwitch=4;
+                }
+                break;
+            case  "第五筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    tapOnRecord(4);
+                }else{
+                    mSwitch=5;
+                }
+                break;
+            case "閉嘴":
             case "結束語音":
             case "關閉語音":
             case "離開語音":
@@ -883,8 +930,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startSpeech.setVisibility(View.VISIBLE);
                 NotiClear();
                 break;
-            case "結束":
             case "關閉":
+            case "結束":
             case "離開":
                 finish();
                 break;
@@ -924,12 +971,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (mMap.getCameraPosition().zoom<=mMap.getMinZoomLevel())break;
                 mMap.animateCamera( CameraUpdateFactory.zoomTo( mMap.getCameraPosition().zoom - 1 ) );
                 break;
-            case  "第一筆":
-            case  "第二筆":
-            case  "第三筆":
-            case  "第四筆":
-            case  "第五筆":
+        }
+        if (mSwitch!=0){
+            try{
+                final AutocompletePrediction item = mAdapter.getItem(mSwitch-1);
+                Log.d(MapTag, "AutoComplete ID"+ mAdapter.getItem(mSwitch-1) );
+                final String placeId = item.getPlaceId();
+                final CharSequence primaryText = item.getPrimaryText(null);
+                Log.i(MapTag, "Autocomplete item selected: " + primaryText);
+            /*
+             Issue a request to the Places Geo Data API to retrieve a Place object with additional
+             details about the place.
+              */
+                PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.getPlaceById(googleApiClient, placeId);
+                placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
+                Log.i(MapTag, "Called getPlaceById to get Place details for " + placeId);
 
+                //Close Keyboard
+                InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(MapsActivity.this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                mAutocompleteView.setText("");
+            }catch (Exception e){
+                Log.d(MapTag,e.toString());
+            }
         }
     }
 }
