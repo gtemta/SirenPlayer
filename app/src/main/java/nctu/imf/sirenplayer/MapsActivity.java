@@ -16,13 +16,13 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -95,6 +95,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button toMap;
     private LinearLayout DBLayout;
     private static final int NOTI_ID =100;
+    private boolean isFirstNavigation = true;
 
 
 
@@ -105,11 +106,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationRequest locationRequest;
     // 記錄目前最新的位置
     private static Location currentLocation;
+    private static Location nCurrentLocation;
     private static LatLng goLatLng;
     private LocationManager locationManager;
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
     private FloatingActionButton startSpeech;
+    public boolean getService = false;
 
 
 
@@ -230,7 +233,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 moveMap(goLatLng);
                 addMarker(goLatLng, dbAdapter.get(position).get_Command(), "上次查詢時間:" + dbAdapter.get(position).get_Time());
                 Log.d(DBTag, "Record list view position" + position);
+                Log.e(DBTag, "LATLNG " + goLatLng);
+                Log.e(DBTag, "location   " + currentLocation);
+                Log.e(DBTag, "Lat " + currentLocation.getLatitude());
+                Log.e(DBTag, "Lng " + currentLocation.getLongitude());
+
+
                 if (goLatLng!=null){
+                    Log.d(MapTag,"TEST "+dbAdapter.get(position).get_Command());
                     mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),goLatLng);
                     Log.d(MapTag,"Navigation from current to "+dbAdapter.get(position).get_Command());
                 }
@@ -347,7 +357,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
-        outState.putDouble("LAT",currentLocation.getLatitude());
+        outState.putDouble("LAT", currentLocation.getLatitude());
         outState.putDouble("LNG",currentLocation.getLongitude());
     }
 
@@ -366,6 +376,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void NotiClear(){
         ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(NOTI_ID);
     }
+    //CheckGPSisonornot
+
+    private void testLocationProvider() {
+        // TODO Auto-generated method stub
+        try {
+            LocationManager status = (LocationManager) (this.getSystemService(Context.LOCATION_SERVICE));
+            if (status.isProviderEnabled(LocationManager.GPS_PROVIDER)|| status.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                // 如果GPS或網路定位開啟，呼叫locationServiceInitial()更新位置
+                getService = true; // 確認開啟定位服務
+
+            } else {
+                Toast.makeText(this, "請開啟定位服務", Toast.LENGTH_LONG).show();
+                AlertDialog.Builder ad = new AlertDialog.Builder(MapsActivity.this);
+                ad.setTitle("您好,請把'定位'打開喔!! ");
+                ad.setMessage("內容喔" );
+                ad.setNeutralButton("開啟定位服務!!",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                //不做任何事情 直接關閉對話方塊
+                                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)); // 開啟設定頁面
+                            }
+                        });
+                ad.show();
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     // ConnectionCallbacks
     @Override
@@ -415,12 +456,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onLocationChanged(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
         if(isNavigating){
             if(currentLocation!=null){
                 int mQuadrant=0;
+
+                Log.d("Count ","Times: "+ isFirstNavigation);
                 float ctrlBearing;
                 double deltaLat = (location.getLatitude()-currentLocation.getLatitude())/180;  //y +north
                 double deltaLng = (location.getLongitude()-currentLocation.getLongitude())/360;  //x +east
+
+
+                double deltaLat2 = (location.getLatitude()-nCurrentLocation.getLatitude())/180;  //y +north
+                double deltaLng2 = (location.getLongitude()-nCurrentLocation.getLongitude())/360;  //x +east
+                Log.d("Delta of","Lat: "+deltaLat2+"| Lng:"+deltaLng2);
+                double LattoMeter = deltaLat2*111000;
+                double LngtoMeter = deltaLng2*111000;
+                Log.d("Distance in Meter","Lat: "+LattoMeter+"| Lng:"+LngtoMeter);
+                //smalller than 20 meters donot turn
+                if ( LattoMeter>5 || LngtoMeter >5 || isFirstNavigation)
+                {
                 if (deltaLat>0&&deltaLng>0){
                     mQuadrant=1;
                      ctrlBearing = 90 - (float)(Math.atan2(deltaLat,deltaLng)*180);
@@ -447,13 +502,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     ctrlBearing = 90;
                 }
                 Log.d("Bearing","Quadrant:"+mQuadrant+"degree:"+ctrlBearing);
-                moving(latLng,ctrlBearing,65.5f,18f);
+                moving(latLng, ctrlBearing, 65.5f, 18f);
+                    isFirstNavigation =false;
+                    nCurrentLocation=location;
+                }
             }
         }
         // 移動地圖到目前的位置
         if(isFirstStart){
             moveMap(latLng);
             isFirstStart=false;
+            nCurrentLocation=location;
         }
         // 位置改變
         // Location參數是目前的位置
@@ -814,19 +873,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 DBLayout.setVisibility(View.VISIBLE);
                 break;
             case  "第一筆":
-                 tapOnRecord(1);
+                 tapOnRecord(0);
                  break;
             case  "第二筆":
-                tapOnRecord(2);
+                tapOnRecord(1);
                 break;
             case  "第三筆":
-                tapOnRecord(3);
+                tapOnRecord(2);
                 break;
             case  "第四筆":
-                tapOnRecord(4);
+                tapOnRecord(3);
                 break;
             case  "第五筆":
-                tapOnRecord(5);
+                tapOnRecord(4);
                 break;
             case "結束語音":
             case "關閉語音":
@@ -849,6 +908,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             case "導航":
             case "開始導航":
+                isFirstNavigation =true;
                 isNavigating=true;
                 break;
             case "停止導航":
