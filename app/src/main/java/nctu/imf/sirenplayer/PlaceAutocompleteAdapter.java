@@ -77,10 +77,6 @@ public class PlaceAutocompleteAdapter
      */
     private AutocompleteFilter mPlaceFilter;
 
-    public ArrayList<AutocompletePrediction> getResultList(){
-        return mResultList;
-    }
-
     /**
      * Initializes with a resource for text rows and autocomplete query bounds.
      *
