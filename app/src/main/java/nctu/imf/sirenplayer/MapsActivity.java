@@ -472,16 +472,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 float ctrlBearing;
                 double deltaLat = (location.getLatitude()-currentLocation.getLatitude())/180;  //y +north
                 double deltaLng = (location.getLongitude()-currentLocation.getLongitude())/360;  //x +east
+                Log.d("Delta of","Lat: "+deltaLat+"| Lng:"+deltaLng);
 
-
-                double deltaLat2 = (location.getLatitude()-nCurrentLocation.getLatitude())/180;  //y +north
-                double deltaLng2 = (location.getLongitude()-nCurrentLocation.getLongitude())/360;  //x +east
-                Log.d("Delta of","Lat: "+deltaLat2+"| Lng:"+deltaLng2);
-                double LattoMeter = deltaLat2*111000;
-                double LngtoMeter = deltaLng2*111000;
-                Log.d("Distance in Meter","Lat: "+LattoMeter+"| Lng:"+LngtoMeter);
                 //smalller than 20 meters donot turn
-                if ( LattoMeter>5 || LngtoMeter >5 || isFirstNavigation)
+                float[] f=new float[1];
+                Location.distanceBetween(nCurrentLocation.getLatitude(),nCurrentLocation.getLongitude()
+                        ,location.getLatitude(),location.getLongitude(),f);
+                Log.d("Distance: " ," " + nCurrentLocation.distanceTo(location));
+                if (nCurrentLocation.distanceTo(location)>10 || isFirstNavigation)
                 {
                 if (deltaLat>0&&deltaLng>0){
                     mQuadrant=1;
@@ -772,13 +770,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     };
 
 
-    private void tapOnAutoComplete( int activeposition){
-//should be set AdapterView or abslistView
-//        mAdapter.getResultList()
-//                .performItemClick(mAutocompleteView.getAdapter().getView(activeposition, null, null)
-//                        , activeposition, mAutocompleteView.getAdapter().getItemId(activeposition));
-
-    }
 
     /**
      * Callback for results from a Places Geo Data API query that shows the first place result in

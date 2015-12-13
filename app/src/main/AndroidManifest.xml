@@ -43,14 +43,13 @@
             android:name=".DBActivity"
             android:label="Database" >
         </activity>
-        <service android:name=".MainService" >
-            <!--<intent-filter android:label="@string/app_name" >-->
-                <!--<action android:name="nctu.imf.sirenplayer.MainService" />-->
-            <!--</intent-filter>-->
+        <service android:name="nctu.imf.sirenplayer.MainService" >
         </service>
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps" >
+            android:label="@string/title_activity_maps"
+            android:screenOrientation="portrait"
+            >
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
