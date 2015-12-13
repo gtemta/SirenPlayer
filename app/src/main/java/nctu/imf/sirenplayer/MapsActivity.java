@@ -475,28 +475,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
         if(isNavigating){
-<<<<<<< HEAD
-            if(currentLocation!=null){
-                int mQuadrant=0;
-
-                Log.d("Count ","Times: "+ isFirstNavigation);
-                float ctrlBearing;
-                double deltaLat = (location.getLatitude()-currentLocation.getLatitude())/180;  //y +north
-                double deltaLng = (location.getLongitude()-currentLocation.getLongitude())/360;  //x +east
-                Log.d("Delta of","Lat: "+deltaLat+"| Lng:"+deltaLng);
-
-                //smalller than 20 meters donot turn
-                float[] f=new float[1];
-                Location.distanceBetween(nCurrentLocation.getLatitude(), nCurrentLocation.getLongitude()
-                        , location.getLatitude(), location.getLongitude(),f);
-                Log.d("Distance: " ," " + nCurrentLocation.distanceTo(location));
-                if (nCurrentLocation.distanceTo(location)>10 || isFirstNavigation)
-=======
             if(nCurrentLocation!=null){
                 float ctrlBearing=nCurrentLocation.bearingTo(location);
                 float ctrlDistance=nCurrentLocation.distanceTo(location);
                 if (ctrlDistance>10 || isFirstNavigation)
->>>>>>> origin/master
+
                 {
                     if (isShowLog){
                         logTextView.setText("last:" + nCurrentLocation.getLatitude() + "," + nCurrentLocation.getLongitude() + "\n");
