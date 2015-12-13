@@ -79,6 +79,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static boolean isFirstStart=true;
     private static boolean isNavigating=false;
     private static boolean isFocusAutocompleteView=false;
+    private enum travelMode{driving,walking,bycling,transit};
+    private int myMode=1;
+    private final int DRIVE=1;
+    private final int DRIVE_AVOID_HIGHWAY=21;
 
 
     /***************************DB******************************/
@@ -173,6 +177,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             currentLocation.setLongitude(savedInstanceState.getDouble("LNG"));
         }
         setContentView(R.layout.activity_main);
+        testLocationProvider();
 
 
         startSpeech = (FloatingActionButton) findViewById(R.id.start_speech);
@@ -365,7 +370,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
         outState.putDouble("LAT", currentLocation.getLatitude());
-        outState.putDouble("LNG",currentLocation.getLongitude());
+        outState.putDouble("LNG", currentLocation.getLongitude());
     }
 
     /**************************util*************************/
@@ -387,6 +392,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void testLocationProvider() {
         // TODO Auto-generated method stub
+
         try {
             LocationManager status = (LocationManager) (this.getSystemService(Context.LOCATION_SERVICE));
             if (status.isProviderEnabled(LocationManager.GPS_PROVIDER)|| status.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
@@ -394,11 +400,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 getService = true; // 確認開啟定位服務
 
             } else {
-                Toast.makeText(this, "請開啟定位服務", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "定位服務上為開啟，請開啟定位服務", Toast.LENGTH_LONG).show();
                 AlertDialog.Builder ad = new AlertDialog.Builder(MapsActivity.this);
-                ad.setTitle("您好,請把'定位'打開喔!! ");
-                ad.setMessage("內容喔" );
-                ad.setNeutralButton("開啟定位服務!!",
+                ad.setTitle("您好,請至設定將'定位'功能開啟!! ");
+                ad.setMessage("為有良好的應用程式體驗，請開啟定位服務" );
+                ad.setNeutralButton("前往啟動定位服務",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 //不做任何事情 直接關閉對話方塊
@@ -476,8 +482,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //smalller than 20 meters donot turn
                 float[] f=new float[1];
-                Location.distanceBetween(nCurrentLocation.getLatitude(),nCurrentLocation.getLongitude()
-                        ,location.getLatitude(),location.getLongitude(),f);
+                Location.distanceBetween(nCurrentLocation.getLatitude(), nCurrentLocation.getLongitude()
+                        , location.getLatitude(), location.getLongitude(),f);
                 Log.d("Distance: " ," " + nCurrentLocation.distanceTo(location));
                 if (nCurrentLocation.distanceTo(location)>10 || isFirstNavigation)
                 {
@@ -651,7 +657,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         String output = "json";
 
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
+        String Mode = "driving";
+
+        String url=null;
+
+        switch (myMode){
+            case DRIVE:
+                url  = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters ;
+                break;
+            case DRIVE_AVOID_HIGHWAY:
+                url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters +"&avoid=highways";
+                break;
+        }
 
         return url;
     }
@@ -962,6 +979,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (mMap.getCameraPosition().zoom<=mMap.getMinZoomLevel())break;
                 mMap.animateCamera( CameraUpdateFactory.zoomTo( mMap.getCameraPosition().zoom - 1 ) );
                 break;
+            case  "立體":
+                mMap.setBuildingsEnabled(true);
+                Log.d(MapTag, "Setup 3D Map" );
+                break;
+            case "開車":
+                myMode=DRIVE;
+                break;
+            case "騎車":
+            case "機車":
+                myMode=DRIVE_AVOID_HIGHWAY;
+                break;
+
         }
         if (mSwitch!=0){
             try{
