@@ -1,4 +1,4 @@
-﻿package nctu.imf.sirenplayer;
+package nctu.imf.sirenplayer;
 
 import android.app.AlertDialog;
 import android.app.Notification;
