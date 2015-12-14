@@ -406,7 +406,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 getService = true; // 確認開啟定位服務
 
             } else {
-                Toast.makeText(this, "定位服務上為開啟，請開啟定位服務", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "定位服務尚未開啟，請開啟定位服務", Toast.LENGTH_LONG).show();
                 AlertDialog.Builder ad = new AlertDialog.Builder(MapsActivity.this);
                 ad.setTitle("您好,請至設定將'定位'功能開啟!! ");
                 ad.setMessage("為有良好的應用程式體驗，請開啟定位服務" );
