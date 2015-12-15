@@ -214,8 +214,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         helpLayout=(LinearLayout)findViewById(R.id.help_layout);
         list_records=(ListView)findViewById(R.id.db_listView);
         helpTV=(TextView)findViewById(R.id.help_text_view);
-        helpTV.setText("....\n");
-        helpTV.append("...\n");
+        //hint context
+        helpTV.setText("====  語音指令提示 : ==== \n" );
+        helpTV.append(" '結束語音','關閉語音','離開語音' : 關閉語音辨識系統\n\n");
+        helpTV.append(" '重新搜尋' : 重新搜尋想前往的地點\n\n");
+        helpTV.append(" '搜尋','尋找' : 開始搜尋想要前往的地點\n\n");
+        helpTV.append(" '清除' : 清除搜尋的文字欄\n\n");
+        helpTV.append(" '第x筆' : 選取第x筆的資料\n\n");
+        helpTV.append(" '開車' : 設定旅行模式為汽車\n\n");
+        helpTV.append(" '騎車','機車' : 設定旅行模式為機車\n\n");
+        helpTV.append(" '資料庫','紀錄','開啟資料庫','開啟歷史紀錄' : 檢視先前搜尋過的結果\n\n");
+        helpTV.append(" '關閉資料庫','關閉紀錄','關閉歷史紀錄' : 關閉檢視歷史紀錄的頁面\n\n");
+        helpTV.append(" '清除資料庫','清除紀錄','清除歷史紀錄' : 刪除所有歷史紀錄\n\n");
+        helpTV.append(" '導航','開始導航' : 進入導航模式\n\n");
+        helpTV.append(" '停止導航','取消導航','終止導航','結束導航' : 結束導航模式\n\n");
+        helpTV.append(" '清除地圖' : 清理地圖上的標記\n\n");
+        helpTV.append(" '放大','縮小' : 調整視野的大小\n\n");
+        helpTV.append(" '關閉程式','離開程式','結束程式' : 關閉SirenPlayer\n\n");
+
         toMap=(Button)findViewById(R.id.back2map);
         backToMap=(Button)findViewById(R.id.back_to_map);
 
@@ -924,13 +940,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (DBLayout.getVisibility()==View.VISIBLE){
                     DBLayout.setVisibility(View.GONE);
                 }
-                logTextView.setVisibility(View.VISIBLE);
+                helpLayout.setVisibility(View.VISIBLE);
                 toastStr+="您可以呼叫'關閉提示'以關閉提示功能";
                 break;
             case "關閉幫助":
             case "關閉提示":
             case "關閉協助":
-                DBLayout.setVisibility(View.GONE);
+                helpLayout.setVisibility(View.GONE);
                 break;
             case  "第一筆":
                 if (DBLayout.getVisibility()==View.VISIBLE){
@@ -1017,7 +1033,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "開始導航":
                 isFirstNavigation =true;
                 isNavigating=true;
-
+                toastStr+="您可以呼叫'關閉導航' 來結束導航模式";
                 break;
 
             case "停止導航":
@@ -1042,6 +1058,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 isFocusAutocompleteView=true;
                 mAutocompleteView.setText("");
+                toastStr+="您可以說出您想前往的地點";
 
             case "搜尋":
             case "尋找":
@@ -1069,7 +1086,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             case "開車":
                 myMode=DRIVE;
-                toastStr+="您可以呼叫'縮小'以調整地圖大小";
                 break;
             case "騎車":
             case "機車":
