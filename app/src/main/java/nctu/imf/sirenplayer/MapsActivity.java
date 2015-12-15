@@ -855,8 +855,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 logTextView.setText("caseSelect"+caseSelect+",mySubstring:"+mySubstring);
                 Log.d(MapTag,"caseSelect"+caseSelect+",mySubstring:"+mySubstring);
             }
-        }
-        else if (isFocusAutocompleteView){
+        }else if (caseSelect.startsWith("重新搜尋")||caseSelect.startsWith("重新尋找")){
+            if (caseSelect.length()>=4){
+                String mySubstring=caseSelect.substring(4);
+                mAutocompleteView.setText(mySubstring);
+                isFocusAutocompleteView=false;
+                logTextView.setText("caseSelect"+caseSelect+",mySubstring:"+mySubstring);
+                Log.d(MapTag,"caseSelect"+caseSelect+",mySubstring:"+mySubstring);
+            }
+        }else if (isFocusAutocompleteView){
             mAutocompleteView.setText(caseSelect);
             isFocusAutocompleteView=false;
         }
@@ -908,6 +915,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mSwitch=5;
                 }
                 break;
+            case  "第六筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    tapOnRecord(5);
+                }
+                break;
+            case  "第七筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    tapOnRecord(6);
+                }
+                break;
             case "閉嘴":
             case "結束語音":
             case "關閉語音":
@@ -926,6 +943,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "關閉":
             case "結束":
             case "離開":
+            case "關閉城市":
+            case "結束城市":
+            case "離開城市":
+            case "離開程式":
+            case "結束程式":
+            case "關閉程式":
                 if (DBLayout.getVisibility()==View.VISIBLE){
                     DBLayout.setVisibility(View.GONE);
                     break;
@@ -947,11 +970,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             case "清除地圖":
                 mMap.clear();
+                if (markerLatLng.size() > 0) {
+                    markerLatLng.clear();
+                }
                 break;
             case "重新搜尋":
+                mMap.clear();
+                if (markerLatLng.size() > 0) {
+                    markerLatLng.clear();
+                }
+                isFocusAutocompleteView=true;
                 mAutocompleteView.setText("");
             case "搜尋":
-
             case "尋找":
                 isFocusAutocompleteView=true;
                 break;
