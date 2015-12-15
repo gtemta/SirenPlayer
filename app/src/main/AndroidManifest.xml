@@ -43,8 +43,7 @@
             android:name=".DBActivity"
             android:label="Database" >
         </activity>
-        <service android:name="nctu.imf.sirenplayer.MainService" >
-        </service>
+        <service android:name="nctu.imf.sirenplayer.MainService" />
         <activity
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"
