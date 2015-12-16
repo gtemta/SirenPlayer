@@ -231,6 +231,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         helpTV.append(" '清除資料庫','清除紀錄','清除歷史紀錄' : 刪除所有歷史紀錄\n\n");
         helpTV.append(" '導航','開始導航' : 進入導航模式\n\n");
         helpTV.append(" '停止導航','取消導航','終止導航','結束導航' : 結束導航模式\n\n");
+        helpTV.append(" '我的位置','定位','我的地點' : 移動畫面至您的所在地點\n\n");
         helpTV.append(" '清除地圖' : 清理地圖上的標記\n\n");
         helpTV.append(" '放大','縮小' : 調整視野的大小\n\n");
         helpTV.append(" '關閉程式','離開程式','結束程式' : 關閉SirenPlayer\n\n");
@@ -290,6 +291,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),goLatLng);
                     Log.d(MapTag,"Navigation from current to "+dbAdapter.get(position).get_Command());
                 }
+                goLatLng=null;
                 DBLayout.setVisibility(View.GONE);
             }
         });
@@ -328,6 +330,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             logTextView=(TextView)findViewById(R.id.log_text_view);
             logTextView.setVisibility(View.GONE);
         }
+        Toast.makeText(this,"您好,建議您使用國語(台灣)進行語音操作",Toast.LENGTH_SHORT).show();
     }
 
 
@@ -439,7 +442,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
                         });
                 ad.show();
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -475,16 +477,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     startActivity(new Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)); // 開啟設定頁面
                                 }
                             });
-
                     ad.show();
                 }
             }
-
-
         }catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     // ConnectionCallbacks
@@ -922,8 +920,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String mySubstring=caseSelect.substring(2);
                 mAutocompleteView.setText(mySubstring);
                 isFocusAutocompleteView=false;
-                logTextView.setText("caseSelect"+caseSelect+",mySubstring:"+mySubstring);
+                logTextView.setText("caseSelect" + caseSelect + ",mySubstring:" + mySubstring);
                 Log.d(MapTag,"caseSelect"+caseSelect+",mySubstring:"+mySubstring);
+                toastStr+="\n您可以透過呼叫'第一筆'進行搜尋";
             }
         }else if (caseSelect.startsWith("重新搜尋")||caseSelect.startsWith("重新尋找")){
             if (caseSelect.length()>=4){
@@ -932,10 +931,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 isFocusAutocompleteView=false;
                 logTextView.setText("caseSelect"+caseSelect+",mySubstring:"+mySubstring);
                 Log.d(MapTag,"caseSelect"+caseSelect+",mySubstring:"+mySubstring);
+                toastStr+="\n您可以透過呼叫'第一筆'進行搜尋";
             }
         }else if (isFocusAutocompleteView){
             mAutocompleteView.setText(caseSelect);
             isFocusAutocompleteView=false;
+            toastStr+="\n您可以透過呼叫'第一筆'進行搜尋";
         }
         int mSwitch=0;
         switch (caseSelect){
@@ -990,6 +991,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             case "DB":
             case "BB":
+            case "TVB":
             case "D1B":
             case "D1D":
             case "B1D":
@@ -1020,9 +1022,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             case "D3B":
             case "D3D":
+            case "D3P":
+            case "P3P":
             case "B3D":
             case "B3B":
             case "D3筆":
+            case "13筆":
             case "第3B":
             case  "第三筆":
                 toastStr="第三筆";
@@ -1033,12 +1038,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 break;
             case "D4B":
+            case "D4C":
             case "D4D":
             case "B4D":
             case "B4B":
+            case "DCB":
             case "D4筆":
+            case "14筆":
+            case "14B":
             case "第4B":
             case  "第四筆":
+            case  "第四壁":
+            case  "第四集":
                 toastStr="第四筆";
                 if (DBLayout.getVisibility()==View.VISIBLE){
                     tapOnRecord(3);
@@ -1050,9 +1061,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "D5D":
             case "B5D":
             case "B5B":
+            case "P5B":
             case "D5筆":
             case "第5B":
             case  "第五筆":
+            case  "第五品":
                 toastStr="第五筆";
                 if (DBLayout.getVisibility()==View.VISIBLE){
                     tapOnRecord(4);
@@ -1119,7 +1132,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     deleteRecord(6);
                 }
                 break;
-
             case "閉嘴":
             case "結束語音":
             case "關閉語音":
@@ -1162,7 +1174,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 isNavigating=true;
                 toastStr+="\n您可以呼叫'關閉導航' 來結束導航模式";
                 break;
-
             case "停止導航":
             case "取消導航":
             case "終止導航":
@@ -1174,6 +1185,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             case "清除地圖":
             case "清楚地圖":
+                toastStr="清除地圖";
                 mMap.clear();
                 if (markerLatLng.size() > 0) {
                     markerLatLng.clear();
@@ -1187,7 +1199,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 isFocusAutocompleteView=true;
                 mAutocompleteView.setText("");
                 toastStr+="\n您可以說出您想前往的地點";
-
+                break;
             case "搜尋":
             case "尋找":
                 isFocusAutocompleteView=true;
@@ -1228,6 +1240,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 dbDAO.clean();
                 records.clear();
                 dbAdapter.notifyDataSetChanged();
+                break;
+            case "我的位置":
+            case "定位":
+            case "我的地點":
+                moveMap(new LatLng(currentLocation.getLatitude(), currentLocation.getLatitude()));
+                break;
         }
         if (mSwitch!=0&&mAutocompleteView.length()>0){
             try{
@@ -1243,6 +1261,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.getPlaceById(googleApiClient, placeId);
                 placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
                 Log.i(MapTag, "Called getPlaceById to get Place details for " + placeId);
+
 
                 //Close Keyboard
                 InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
