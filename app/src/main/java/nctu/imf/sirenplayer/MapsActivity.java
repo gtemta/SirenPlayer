@@ -12,6 +12,8 @@ import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -118,7 +120,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // 顯示目前與儲存位置的標記物件
     private Marker currentMarker, itemMarker;
     private FloatingActionButton startSpeech;
-    public boolean getService = false;
+    public boolean getGPSService = false;
+    public boolean getLANService = false;
 
 
     /***************************Log******************************/
@@ -182,6 +185,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         setContentView(R.layout.activity_main);
         testLocationProvider();
+        testLanProvider();
 
 
         startSpeech = (FloatingActionButton) findViewById(R.id.start_speech);
@@ -302,19 +306,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 Log.d(DBTag, "Delete id : " + id);
                                 Log.d(DBTag, "number in DB : " + dbDAO.getCount());
                                 Log.d(DBTag, "Delete dbAdapter get(position) id: " + dbAdapter.get(position).getId());
-
-
-//                                if (dbAdapter.getCount()== id){
-//                                    records.clear();
-//                                    dbDAO.delete(dbAdapter.get(position).getId());
-//                                    dbAdapter.notifyDataSetChanged();
-//                                    records = dbDAO.getAll();
-//                                    DBLayout.setVisibility(View.VISIBLE);
-//                                }
-//                                else {
                                 Log.d(DBTag, "dbadapter: " + dbAdapter.get(position).getId());
                                 dbDAO.delete(dbAdapter.get(position).getId());
-//                                }
                                 records.remove(position);
                                 dbAdapter.notifyDataSetChanged();
                                 Log.d(DBTag, "Delete compelete");
@@ -424,7 +417,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void NotiClear(){
         ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(NOTI_ID);
     }
-    //CheckGPSisonornot
 
     private void testLocationProvider() {
         // TODO Auto-generated method stub
@@ -433,7 +425,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LocationManager status = (LocationManager) (this.getSystemService(Context.LOCATION_SERVICE));
             if (status.isProviderEnabled(LocationManager.GPS_PROVIDER)|| status.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 // 如果GPS或網路定位開啟，呼叫locationServiceInitial()更新位置
-                getService = true; // 確認開啟定位服務
+                getGPSService = true; // 確認開啟定位服務
 
             } else {
                 Toast.makeText(this, "定位服務尚未開啟，請開啟定位服務", Toast.LENGTH_LONG).show();
@@ -453,6 +445,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    private void testLanProvider(){
+        try {
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (connMgr != null) {
+                NetworkInfo info = connMgr.getActiveNetworkInfo();
+                NetworkInfo networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+                boolean isWifiConn = networkInfo.isConnected();
+                networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+                boolean isMobileConn = networkInfo.isConnected();
+                if(isWifiConn||isMobileConn){
+                    getLANService = true;
+                } else {
+                    Toast.makeText(this, "網路服務尚未開啟，請開啟網路服務", Toast.LENGTH_LONG).show();
+                    AlertDialog.Builder ad = new AlertDialog.Builder(MapsActivity.this);
+                    ad.setTitle("您好,請至設定將'網路'功能開啟!! ");
+                    ad.setMessage("為有良好的應用程式體驗，請開啟網路服務");
+                    ad.setPositiveButton("啟動Wifi服務",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //不做任何事情 直接關閉對話方塊
+                                    startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)); // 開啟設定頁面
+                                }
+                            });
+                    ad.setNegativeButton("啟動行動網路",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //不做任何事情 直接關閉對話方塊
+                                    startActivity(new Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)); // 開啟設定頁面
+                                }
+                            });
+
+                    ad.show();
+                }
+            }
+
+
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     // ConnectionCallbacks
@@ -865,7 +898,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         list_records.performItemClick(list_records.getAdapter().getView(position, null, null)
                 , position, list_records.getAdapter().getItemId(position));
+
     }
+    private void  deleteRecord(int position){
+        dbDAO.delete(dbAdapter.get(position).getId());
+        records.remove(position);
+        dbAdapter.notifyDataSetChanged();
+        DBLayout.setVisibility(View.GONE);
+    }
+
 
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
@@ -993,6 +1034,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     tapOnRecord(6);
                 }
                 break;
+            case "刪除第一筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    deleteRecord(0);
+                }
+                break;
+            case "刪除第二筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    deleteRecord(1);
+                }
+                break;
+            case "刪除第三筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    deleteRecord(2);
+                }
+                break;
+            case "刪除第四筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    deleteRecord(3);
+                }
+                break;
+            case "刪除第五筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    deleteRecord(4);
+                }
+                break;
+            case "刪除第六筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    deleteRecord(5);
+                }
+                break;
+            case "刪除第七筆":
+                if (DBLayout.getVisibility()==View.VISIBLE){
+                    deleteRecord(6);
+                }
+                break;
+
             case "閉嘴":
             case "結束語音":
             case "關閉語音":
@@ -1046,6 +1123,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 toastStr+="您可以呼叫'開始導航'以再次開啟導航功能";
                 break;
             case "清除地圖":
+            case "清楚地圖":
                 mMap.clear();
                 if (markerLatLng.size() > 0) {
                     markerLatLng.clear();
