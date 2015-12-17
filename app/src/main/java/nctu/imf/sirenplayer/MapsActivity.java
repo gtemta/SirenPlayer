@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.MediaCodec;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -82,6 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static boolean isFirstStart=true;
     private static boolean isNavigating=false;
     private static boolean isFocusAutocompleteView=false;
+
     private enum travelMode{driving,walking,bycling,transit};
     private static int myMode=1;
     private final int DRIVE=1;
@@ -230,6 +232,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         helpTV.append(" '關閉資料庫','關閉紀錄','關閉歷史紀錄' : 關閉檢視歷史紀錄的頁面\n\n");
         helpTV.append(" '清除資料庫','清除紀錄','清除歷史紀錄' : 刪除所有歷史紀錄\n\n");
         helpTV.append(" '導航','開始導航' : 進入導航模式\n\n");
+        helpTV.append(" '進階導航' : 進入google map 導航\n\n");
         helpTV.append(" '停止導航','取消導航','終止導航','結束導航' : 結束導航模式\n\n");
         helpTV.append(" '我的位置','定位','我的地點' : 移動畫面至您的所在地點\n\n");
         helpTV.append(" '清除地圖' : 清理地圖上的標記\n\n");
@@ -330,7 +333,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             logTextView=(TextView)findViewById(R.id.log_text_view);
             logTextView.setVisibility(View.GONE);
         }
-        Toast.makeText(this,"您好,建議您使用國語(台灣)進行語音操作",Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"您好,建議您使用國語(台灣)進行語音操作",Toast.LENGTH_LONG).show();
     }
 
 
@@ -864,6 +867,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.d(MapTag, "Insert to DB "+ place.getName().toString());
             Log.d(MapTag, "Lat " + latlng.latitude);
             Log.d(MapTag, "Lon " + latlng.longitude);
+
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
             builder.include(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
             builder.include(latlng);
@@ -886,6 +890,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
             Log.i(MapTag, "Place details received: " + place.getName());
+            goLatLng=place.getLatLng();
 
             places.release();
         }
@@ -916,7 +921,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void CaseSelect(String caseSelect){
         String toastStr=""+caseSelect;
         if (caseSelect.startsWith("搜尋")||caseSelect.startsWith("尋找")){
-            if (caseSelect.length()>=2){
+            if (caseSelect.length()>2){
                 String mySubstring=caseSelect.substring(2);
                 mAutocompleteView.setText(mySubstring);
                 isFocusAutocompleteView=false;
@@ -925,7 +930,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 toastStr+="\n您可以透過呼叫'第一筆'進行搜尋";
             }
         }else if (caseSelect.startsWith("重新搜尋")||caseSelect.startsWith("重新尋找")){
-            if (caseSelect.length()>=4){
+            if (caseSelect.length()>4){
                 String mySubstring=caseSelect.substring(4);
                 mAutocompleteView.setText(mySubstring);
                 isFocusAutocompleteView=false;
@@ -1174,6 +1179,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 isNavigating=true;
                 toastStr+="\n您可以呼叫'關閉導航' 來結束導航模式";
                 break;
+            case "進階導航":
+                if (goLatLng!=null){
+                    if (myMode==DRIVE){
+                        Uri gmmIntentUri = Uri.parse("google.navigation:q="+goLatLng.latitude+","+goLatLng.longitude+"&avoid=tf");
+                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                        mapIntent.setPackage("com.google.android.apps.maps");
+                        startActivity(mapIntent);
+                    }else if (myMode==DRIVE_AVOID_HIGHWAY){
+                        Uri gmmIntentUri = Uri.parse("google.navigation:q="+goLatLng.latitude+","+goLatLng.longitude+"&avoid=thf");
+                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                        mapIntent.setPackage("com.google.android.apps.maps");
+                        startActivity(mapIntent);
+                    }
+                    toastStr+="\n正在切換至google map導航,請稍候";
+                }else{
+                    toastStr+="\n請先指定目的地再使用進階導航";
+                }
+                goLatLng=null;
+                break;
             case "停止導航":
             case "取消導航":
             case "終止導航":
@@ -1232,6 +1256,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "機車":
             case "騎機車":
                 myMode=DRIVE_AVOID_HIGHWAY;
+                toastStr+="\n規劃路線時將為你避開高速公路";
                 break;
             case "清除資料庫":
             case "清除資料":
@@ -1244,7 +1269,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "我的位置":
             case "定位":
             case "我的地點":
-                moveMap(new LatLng(currentLocation.getLatitude(), currentLocation.getLatitude()));
+                moveMap(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
                 break;
         }
         if (mSwitch!=0&&mAutocompleteView.length()>0){
