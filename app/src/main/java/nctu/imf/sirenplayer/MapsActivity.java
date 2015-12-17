@@ -12,7 +12,6 @@ import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationManager;
-import android.media.MediaCodec;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -83,8 +82,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static boolean isFirstStart=true;
     private static boolean isNavigating=false;
     private static boolean isFocusAutocompleteView=false;
-
-    private enum travelMode{driving,walking,bycling,transit};
     private static int myMode=1;
     private final int DRIVE=1;
     private final int DRIVE_AVOID_HIGHWAY=21;
@@ -116,10 +113,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // 記錄目前最新的位置
     private static Location currentLocation;
     private static Location nCurrentLocation;
+    private static Location goLocation;
     private static LatLng goLatLng;
-    private LocationManager locationManager;
     // 顯示目前與儲存位置的標記物件
-    private Marker currentMarker, itemMarker;
+    private Marker currentMarker;
     private FloatingActionButton startSpeech;
     public boolean getGPSService = false;
     public boolean getLANService = false;
@@ -539,10 +536,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if(isNavigating){
             if(nCurrentLocation!=null){
+                /********************go farther*******************/
+                float totalDistance=nCurrentLocation.distanceTo(goLocation);
+                float thisDistance=location.distanceTo(goLocation);
+                if (thisDistance-totalDistance>15){
+                    Toast.makeText(this,"注意:可能正在遠離目的地",Toast.LENGTH_SHORT).show();
+                }else if (thisDistance-totalDistance>30){
+                    Toast.makeText(this,"注意:您正嚴重地偏離目的地",Toast.LENGTH_SHORT).show();
+                }
+
                 float ctrlBearing=nCurrentLocation.bearingTo(location);
                 float ctrlDistance=nCurrentLocation.distanceTo(location);
                 if (ctrlDistance>10)
-
                 {
                     if (canShowLog){
                         logTextView.setText("last:" + nCurrentLocation.getLatitude() + "," + nCurrentLocation.getLongitude() + "\n");
@@ -891,6 +896,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             Log.i(MapTag, "Place details received: " + place.getName());
             goLatLng=place.getLatLng();
+            goLocation.setLatitude(goLatLng.latitude);
+            goLocation.setLongitude(goLatLng.longitude);
 
             places.release();
         }
