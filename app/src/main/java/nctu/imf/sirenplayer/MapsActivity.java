@@ -49,6 +49,7 @@ import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -1162,7 +1163,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     helpLayout.setVisibility(View.GONE);
                     break;
                 }
-                toastStr+="\n謝謝您的使用，歡迎再次使用";
             case "結束":
             case "關閉城市":
             case "結束城市":
@@ -1269,7 +1269,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "我的位置":
             case "定位":
             case "我的地點":
-                moveMap(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                moving(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 0, 0, 18f);
                 break;
         }
         if (mSwitch!=0&&mAutocompleteView.length()>0){
