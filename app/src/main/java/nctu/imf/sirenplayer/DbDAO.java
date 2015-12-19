@@ -61,6 +61,7 @@ public class DbDAO {
     public DbDAO(Context context)
     {
         db = MyDBHelper.getDatabase(context);
+
     }
 
     public  void close(){
@@ -147,6 +148,16 @@ public class DbDAO {
 
         return result;
     }
+    public List<DBcontact> getWAll() {
+        List<DBcontact> result = new ArrayList<>();
+        Cursor cursor = db.query(
+                TABLE2_NAME, null, null, null, null, null, null);
+        while (cursor.moveToNext()) {
+            result.add(getRecord(cursor));
+        }
+        cursor.close();
+        return result;
+    }
 
 
 
@@ -160,9 +171,5 @@ public class DbDAO {
         insert(RS3);
         insert(RS4);
     }
-
-
-
-    //private MenuItem add
 
 }

@@ -3,6 +3,7 @@ package nctu.imf.sirenplayer;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
  * Created by IMF on 2015/11/21.
@@ -20,6 +21,8 @@ public class MyDBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(DbDAO.CREATE_TABLE);
+        sqLiteDatabase.execSQL(DbDAO.CREATE_TABLE2);
+        Log.d("MyDBHelper","db setup");
     }
 
     @Override

@@ -140,8 +140,9 @@ public class MainService extends Service{
             String str= (String) data.get(0);
             Log.d(TAG,str);
             sendResult(str);
-//            commandword = new DBcontact(0,str,commandword.getLocaleDatetime());
-//            dbDAO.winsert(commandword);
+            Log.d(TAG, "words:" +str);
+            commandword = new DBcontact(0,str,dbDAO.dBcontact.getLocaleDatetime());
+            dbDAO.winsert(commandword);
             Log.i(TAG, "What:"+str);
             if (str.toUpperCase()=="KILL"){
                 MainService.this.stopSelf();

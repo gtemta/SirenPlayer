@@ -907,6 +907,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
             Log.i(MapTag, "Place details received: " + place.getName());
+            Log.i(MapTag, "Place la&lngt received: " + place.getLatLng());
             goLatLng=place.getLatLng();
             goLocation=new Location("goLocation");
             goLocation.setLatitude(goLatLng.latitude);
@@ -919,7 +920,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         list_records.performItemClick(list_records.getAdapter().getView(position, null, null)
                 , position, list_records.getAdapter().getItemId(position));
-
         DBLayout.setVisibility(View.GONE);
     }
     private void  deleteRecord(int position){
@@ -1027,10 +1027,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "D1筆":
             case "第1B":
             case "第一筆":
-            case "GO":
-            case "出發":
-            case "LET'S GO":
                 toastStr="第一筆";
+            case "出發":
                 if (DBLayout.getVisibility()==View.VISIBLE){
                     tapOnRecord(0);
                 }else{
