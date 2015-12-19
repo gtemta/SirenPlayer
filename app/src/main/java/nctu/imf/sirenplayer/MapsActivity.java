@@ -1,8 +1,10 @@
 package nctu.imf.sirenplayer;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks;
 import android.content.Context;
@@ -24,6 +26,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
 import android.text.Spanned;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -51,6 +54,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -106,17 +110,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView helpTV;
     private static final int NOTI_ID =100;
 
-    //=====location====
-    // Google API用戶端物件
+    /***********************location**********************/
     private GoogleApiClient googleApiClient;
-    // Location請求物件
     private LocationRequest locationRequest;
-    // 記錄目前最新的位置
     private static Location currentLocation;
     private static Location nCurrentLocation;
     private static Location goLocation;
     private static LatLng goLatLng;
-    // 顯示目前與儲存位置的標記物件
     private Marker currentMarker;
     private FloatingActionButton startSpeech;
     public boolean getGPSService = false;
@@ -140,7 +140,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**日月潭*/
     final LatLng ZINTUN = new LatLng(23.851676, 120.902008);
     final LatLng rec_Location = new LatLng(24.7855859,120.9986516);
-
 
     /***************************Traffic******************************/
 
@@ -207,6 +206,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mMap = mapFragment.getMap();
         mapFragment.getMapAsync(this);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setIndoorLevelPickerEnabled(false);
         // 建立Google API用戶端物件
         configGoogleApiClient();
         // 建立Location請求物件
@@ -217,25 +219,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         helpLayout=(LinearLayout)findViewById(R.id.help_layout);
         list_records=(ListView)findViewById(R.id.db_listView);
         helpTV=(TextView)findViewById(R.id.help_text_view);
+        helpTV.setMovementMethod(ScrollingMovementMethod.getInstance());
         //hint context
         helpTV.setText("====  語音指令提示 : ==== \n" );
-        helpTV.append(" '結束語音','關閉語音','離開語音' : 關閉語音辨識系統\n\n");
-        helpTV.append(" '重新搜尋' : 重新搜尋想前往的地點\n\n");
-        helpTV.append(" '搜尋','尋找' : 開始搜尋想要前往的地點\n\n");
-        helpTV.append(" '清除' : 清除搜尋的文字欄\n\n");
-        helpTV.append(" '第x筆' : 選取第x筆的資料\n\n");
-        helpTV.append(" '開車' : 設定旅行模式為汽車\n\n");
-        helpTV.append(" '騎車','機車' : 設定旅行模式為機車\n\n");
-        helpTV.append(" '資料庫','紀錄','開啟資料庫','開啟歷史紀錄' : 檢視先前搜尋過的結果\n\n");
-        helpTV.append(" '關閉資料庫','關閉紀錄','關閉歷史紀錄' : 關閉檢視歷史紀錄的頁面\n\n");
-        helpTV.append(" '清除資料庫','清除紀錄','清除歷史紀錄' : 刪除所有歷史紀錄\n\n");
-        helpTV.append(" '導航','開始導航' : 進入導航模式\n\n");
-        helpTV.append(" '進階導航' : 進入google map 導航\n\n");
-        helpTV.append(" '停止導航','取消導航','終止導航','結束導航' : 結束導航模式\n\n");
-        helpTV.append(" '我的位置','定位','我的地點' : 移動畫面至您的所在地點\n\n");
-        helpTV.append(" '清除地圖' : 清理地圖上的標記\n\n");
-        helpTV.append(" '放大','縮小' : 調整視野的大小\n\n");
-        helpTV.append(" '關閉程式','離開程式','結束程式' : 關閉SirenPlayer\n\n");
+        helpTV.append(" '結束語音','關閉語音','離開語音' : 關閉語音辨識系統。\n\n");
+        helpTV.append(" '重新搜尋' : 重新搜尋想前往的地點。\n\n");
+        helpTV.append(" '搜尋','尋找' : 開始搜尋想要前往的地點。\n\n");
+        helpTV.append(" '清除' : 清除搜尋的文字欄。\n\n");
+        helpTV.append(" '第x筆' : 選取第x筆的資料。\n\n");
+        helpTV.append(" '開車' : 設定旅行模式為汽車。\n\n");
+        helpTV.append(" '騎車','機車' : 設定旅行模式為機車。\n\n");
+        helpTV.append(" '資料庫','紀錄','開啟資料庫','開啟歷史紀錄' : 檢視先前搜尋過的結果。\n\n");
+        helpTV.append(" '關閉資料庫','關閉紀錄','關閉歷史紀錄' : 關閉檢視歷史紀錄的頁面。\n\n");
+        helpTV.append(" '清除資料庫','清除紀錄','清除歷史紀錄' : 刪除所有歷史紀錄。\n\n");
+        helpTV.append(" '導航','開始導航' : 進入導航模式。\n\n");
+        helpTV.append(" '進階導航' : 進入google map 導航。\n\n");
+        helpTV.append(" '停止導航','取消導航','終止導航','結束導航' : 結束導航模式。\n\n");
+        helpTV.append(" '我的位置','定位','我的地點' : 移動畫面至您的所在地點。\n\n");
+        helpTV.append(" '清除地圖' : 清理地圖上的標記。\n\n");
+        helpTV.append(" '放大','縮小' : 調整視野的大小。\n\n");
+        helpTV.append(" '關閉程式','離開程式','結束程式' : 關閉SirenPlayer。\n\n");
+        helpTV.append("====  其他功能提示 : ==== \n\n");
+        helpTV.append(" 您也可以透過點擊地圖規化導航路境。\n\n");
+        helpTV.append(" 第一次點擊：我的位置往點擊位置。\n\n");
+        helpTV.append(" 第二次點擊：第一次點擊位置往點擊位置。\n\n");
+        helpTV.append(" 當您遠離目的地時將會有貼心提醒。");
 
         toMap=(Button)findViewById(R.id.back2map);
         backToMap=(Button)findViewById(R.id.back_to_map);
@@ -351,7 +359,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }else{
             moveMap(rec_Location);
         }
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,new IntentFilter("my-event"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("my-event"));
 
         // 連線到Google API用戶端
         if (!googleApiClient.isConnected() && currentMarker != null) {
@@ -622,41 +630,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onMapClick(LatLng latLng) {
                     // Adding new item to the ArrayList
                     markerLatLng.add(latLng);
-
-                    // Creating MarkerOptions
-                    MarkerOptions options = new MarkerOptions();
-
-                    // Setting the position of the marker
-                    options.position(latLng);
-
-                    /**
-                     * 起始及終點位置符號顏色
-                     */
                     if (markerLatLng.size() == 1) {
-                        options.icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_GREEN)); //起點符號顏色
-                        // 設定目前位置的標記
-                        if (currentMarker == null) {
-                            currentMarker = mMap.addMarker(new MarkerOptions().position(latLng));
-                        } else {
-                            currentMarker.setPosition(latLng);
-                        }
+                        MarkerOptions options = new MarkerOptions();
+                        options.position(latLng);
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                         mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latLng);
+                        mMap.addMarker(options);
                     } else if (markerLatLng.size() == 2) {
-                        options.icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_RED)); //終點符號顏色
+                        MarkerOptions options = new MarkerOptions();
+                        options.position(latLng);
+                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                         mNavigation(markerLatLng.get(0), latLng);
+                        mMap.addMarker(options);
+                    }else if (markerLatLng.size() == 3){
+                        Toast.makeText(MapsActivity.this,"再輕觸地圖一次可以清除地圖",Toast.LENGTH_SHORT).show();
+                    }else{
+                        markerLatLng.clear();
+                        mMap.clear();
+                        currentMarker=null;
                     }
-
-                    // Add new marker to the Google Map Android API V2
-                    mMap.addMarker(options);
-
                 }
             });
         }
     }
 
     private void mNavigation(LatLng origin,LatLng dest){
+        if (currentMarker != null) {
+            currentMarker.remove();
+        }
+        currentMarker = mMap.addMarker(new MarkerOptions()
+                .title("我的地點")
+                .position(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
+
         // Checks, whether start and end locations are captured
         LatLng fromLatLng = origin;
         LatLng toLatLng = dest;
@@ -668,6 +674,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Start downloading json data from Google Directions
         // API
         downloadTask.execute(url);
+        mAutocompleteView.setText("");
     }
 
     // 在地圖加入指定位置與標題的標記
@@ -1309,7 +1316,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Close Keyboard
                 InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(MapsActivity.this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                mAutocompleteView.setText("");
             }catch (Exception e){
                 Log.d(MapTag,e.toString());
             }
