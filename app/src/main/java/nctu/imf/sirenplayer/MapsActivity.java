@@ -896,7 +896,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
             Log.i(MapTag, "Place details received: " + place.getName());
+            Log.i(MapTag, "Place la&lngt received: " + place.getLatLng());
             goLatLng=place.getLatLng();
+
+            Log.i(MapTag, "Set Place lat received: " + goLatLng.latitude);
+            Log.i(MapTag, "Set Place lng received: " + goLatLng.longitude);
+
             goLocation.setLatitude(goLatLng.latitude);
             goLocation.setLongitude(goLatLng.longitude);
 
@@ -907,7 +912,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         list_records.performItemClick(list_records.getAdapter().getView(position, null, null)
                 , position, list_records.getAdapter().getItemId(position));
-
         DBLayout.setVisibility(View.GONE);
     }
     private void  deleteRecord(int position){
