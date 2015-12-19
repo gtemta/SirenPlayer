@@ -292,6 +292,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),goLatLng);
                     Log.d(MapTag,"Navigation from current to "+dbAdapter.get(position).get_Command());
                 }
+                goLocation=new Location("goLocation");
+                goLocation.setLatitude(goLatLng.latitude);
+                goLocation.setLongitude(goLatLng.longitude);
                 goLatLng=null;
                 DBLayout.setVisibility(View.GONE);
             }
@@ -538,14 +541,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(isNavigating){
             if(nCurrentLocation!=null){
                 /********************go farther*******************/
-                float totalDistance=nCurrentLocation.distanceTo(goLocation);
-                float thisDistance=location.distanceTo(goLocation);
-                if (thisDistance-totalDistance>15){
-                    Toast.makeText(this,"注意:可能正在遠離目的地",Toast.LENGTH_SHORT).show();
-                }else if (thisDistance-totalDistance>30){
-                    Toast.makeText(this,"注意:您正嚴重地偏離目的地",Toast.LENGTH_SHORT).show();
+                if(goLocation!=null){
+                    float totalDistance=nCurrentLocation.distanceTo(goLocation);
+                    float thisDistance=location.distanceTo(goLocation);
+                    if (thisDistance-totalDistance>15){
+                        Toast.makeText(this,"注意:可能正在遠離目的地",Toast.LENGTH_SHORT).show();
+                    }else if (thisDistance-totalDistance>30){
+                        Toast.makeText(this,"注意:您正嚴重地偏離目的地",Toast.LENGTH_SHORT).show();
+                    }
                 }
-
                 float ctrlBearing=nCurrentLocation.bearingTo(location);
                 float ctrlDistance=nCurrentLocation.distanceTo(location);
                 if (ctrlDistance>10)
@@ -897,6 +901,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             Log.i(MapTag, "Place details received: " + place.getName());
             goLatLng=place.getLatLng();
+            goLocation=new Location("goLocation");
             goLocation.setLatitude(goLatLng.latitude);
             goLocation.setLongitude(goLatLng.longitude);
 
@@ -926,8 +931,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    public void CaseSelect(String caseSelect){
-        String toastStr=""+caseSelect;
+    public void CaseSelect(String caseSelect) {
+        String toastStr = "" + caseSelect;
         if (caseSelect.startsWith("搜尋")||caseSelect.startsWith("尋找")){
             if (caseSelect.length()>2){
                 String mySubstring=caseSelect.substring(2);
@@ -935,9 +940,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 isFocusAutocompleteView=false;
                 logTextView.setText("caseSelect" + caseSelect + ",mySubstring:" + mySubstring);
                 Log.d(MapTag,"caseSelect"+caseSelect+",mySubstring:"+mySubstring);
-                toastStr+="\n您可以透過呼叫'第一筆'進行搜尋";
+                toastStr += "\n您可以透過呼叫'第一筆'進行搜尋";
             }
-        }else if (caseSelect.startsWith("重新搜尋")||caseSelect.startsWith("重新尋找")){
+        } else if (caseSelect.startsWith("重新搜尋")||caseSelect.startsWith("重新尋找")){
             if (caseSelect.length()>4){
                 String mySubstring=caseSelect.substring(4);
                 mAutocompleteView.setText(mySubstring);
@@ -953,6 +958,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         int mSwitch=0;
         switch (caseSelect){
+            case "哈囉":
+                toastStr+="\n您好，請問您今天想去哪呢?";
+                break;
             case "顯示除錯資訊":
             case "顯示除錯":
             case "開啟除錯":
@@ -1012,6 +1020,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             case "D1筆":
             case "第1B":
             case "第一筆":
+            case "GO":
+            case "出發":
+            case "LET'S GO":
                 toastStr="第一筆";
                 if (DBLayout.getVisibility()==View.VISIBLE){
                     tapOnRecord(0);
