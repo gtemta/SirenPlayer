@@ -119,6 +119,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static LatLng goLatLng;
     private Marker currentMarker;
     private FloatingActionButton startSpeech;
+    
     public boolean getGPSService = false;
     public boolean getLANService = false;
 
@@ -126,6 +127,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /***************************Log******************************/
     private static boolean canShowLog =true;
     private TextView logTextView;
+
 
     /***************************Location******************************/
     final LatLng taiwan = new LatLng(25.033408, 121.564099);
@@ -139,9 +141,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     final LatLng KENTING = new LatLng(21.946567, 120.798713);
     /**日月潭*/
     final LatLng ZINTUN = new LatLng(23.851676, 120.902008);
+
     final LatLng rec_Location = new LatLng(24.7855859,120.9986516);
 
     /***************************Traffic******************************/
+    /************************Ant colony ************/
+    private Location destinationpoint[100];  //記錄查詢過的點，後須留存待算出距離
+    private Location sortingdestination[100];  //依前往順序排序過後的點
+    private int num_aco=0;
+    private LatLng ACO_toLatlng,ACO_fromLatlng;
+
+    //=================================================
 
     // 建立Google API用戶端物件
     private synchronized void configGoogleApiClient() {
@@ -159,6 +169,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addApi(LocationServices.API)
                 .build();
     }
+        //caculate ACO distance between destinations
+    private void ACO_Distance(){
+        float distance_Matrix[num_aco][num_aco];
+        for(int i=1;i<=n;i++){
+            for(int j=1;i<=n;i++){
+
+              distance_Matrix[i][j]=destinationpoint[i].distanceTo(destinationpoint[j]);//variable still need to fix
+                
+            }
+        }
+    }
+    private void ACO_Loc2Latlng(LatLng latlng,Location points[]){
+        latlng = new LatLng (points.get_Lat,points.get_Lng);
+    }
+    // private int ACO_Points(Location points[])
+    // {
+    //     int aco_counts=0
+    //     for (int i=0;i<=100;i++){
+    //         if (points[i] != 0)
+    //             aco_counts++;
+    //     } 
+    //     return aco_counts;
+    // }
+
+    //再排路徑之前須先把要走的地方順序進行Sorting  先對destinatiopoint 排序
+    //
+    private void ACO_Route()
+    {
+        for(int i =0 ;i<=num_aco;i++){
+        ACO_toLatlng(ACO_fromLatlng,points[i]);
+        ACO_toLatlng(ACO_toLatlng,points[i+1]);
+        MarkerOptions options = new MarkerOptions();
+        options.position(sortingdestination.getLongitude,sortingdestination.getLatitude);
+        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        mNavigation(destinationpoint[i].getLatitude(),destinationpoint[i].getLongitude(), latLng);
+        mMap.addMarker(options);
+        Log.d("from position info ==",
+            " latitude: " + destinationpoint[ii].getLatitude+
+            "longitude :" + destinationpoint[i].getLongitude);
+        }
+        
+    }
+
 
     // 建立Location請求物件
     private void configLocationRequest() {
@@ -300,6 +353,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),goLatLng);
                     Log.d(MapTag,"Navigation from current to "+dbAdapter.get(position).get_Command());
                 }
+                destinationpoint[num_aco] = new Location("destination" +num_aco);
+                destinationpoint[num_aco].setLatitude(goLatLng.latitude); 
+                destinationpoint[num_aco].setLongitude(goLatLng.longitude);
                 goLocation=new Location("goLocation");
                 goLocation.setLatitude(goLatLng.latitude);
                 goLocation.setLongitude(goLatLng.longitude);
@@ -630,30 +686,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onMapClick(LatLng latLng) {
                     // Adding new item to the ArrayList
                     markerLatLng.add(latLng);
-                    if (markerLatLng.size() == 1) {
+                
                         MarkerOptions options = new MarkerOptions();
                         options.position(latLng);
                         options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                        mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latLng);
+                        //mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latLng);
                         mMap.addMarker(options);
-                    } else if (markerLatLng.size() == 2) {
-                        MarkerOptions options = new MarkerOptions();
-                        options.position(latLng);
-                        options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-                        mNavigation(markerLatLng.get(0), latLng);
-                        mMap.addMarker(options);
-                    }else if (markerLatLng.size() == 3){
-                        Toast.makeText(MapsActivity.this,"再輕觸地圖一次可以清除地圖",Toast.LENGTH_SHORT).show();
-                    }else{
-                        markerLatLng.clear();
-                        mMap.clear();
-                        currentMarker=null;
-                    }
+                        Log.d("position info ==","longitude :"currentLocation.getLongitude +" longitude: " +currentLocation.getLatitude  );
+
+                 
                 }
             });
         }
     }
 
+
+//畫出所需的路線
     private void mNavigation(LatLng origin,LatLng dest){
         if (currentMarker != null) {
             currentMarker.remove();
@@ -699,6 +747,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             CaseSelect(result);
         }
     };
+
+    //===========MOTICE!!!!
+
+
 
     /*****************發送url至google取得路徑方法*******************/
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
@@ -893,7 +945,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
             addMarker(latlng, String.valueOf(place.getName())
                     , String.valueOf(place.getAddress()));
-            mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latlng);
+            //mNavigation(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), latlng);
 
             //Close Keyboard
             InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
@@ -908,6 +960,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             Log.i(MapTag, "Place details received: " + place.getName());
             Log.i(MapTag, "Place la&lngt received: " + place.getLatLng());
+
+                destinationpoint[num_aco] = new Location("destination" +num_aco);
+                destinationpoint[num_aco].setLatitude(goLatLng.latitude); 
+                destinationpoint[num_aco].setLongitude(goLatLng.longitude);
+                
             goLatLng=place.getLatLng();
             goLocation=new Location("goLocation");
             goLocation.setLatitude(goLatLng.latitude);
